@@ -1,0 +1,32 @@
+version: '3'
+
+services:
+  postgres:
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=jobgo_user
+      - POSTGRES_PASSWORD=jobgo_password
+      - POSTGRES_DB=jobgo
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+      - "5000:5000"
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=jobgo_user
+      - DB_PASSWORD=jobgo_password
+      - DB_NAME=jobgo
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:

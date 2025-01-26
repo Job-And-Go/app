@@ -27,4 +27,4 @@ AppDataSource.initialize()
   })
   .catch((error: Error) => {
     console.error("Database connection error:", error);
-  }); 
+  });
