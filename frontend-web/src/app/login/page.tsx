@@ -23,43 +23,40 @@ export default function Login() {
     }));
   };
 
-  const handleAuth = async () => {
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
     try {
       if (isLogin) {
-        // Login
+        // Connexion existante
         const { data, error } = await supabase.auth.signInWithPassword({
           email: formData.email,
           password: formData.password,
         });
 
-        if (error) {
-          console.error(error);
-          return;
-        }
-
-        if (data) {
-          console.log("Connexion réussie:", data);
-          router.push('/'); // Redirection vers la page d'accueil
-        }
+        if (error) throw error;
+        
+        console.log("Connexion réussie:", data);
+        router.push('/');
       } else {
-        // Signup
-        const { data, error } = await supabase.auth.signUp({
-          email: formData.email,
-          password: formData.password,
+        // Nouvelle inscription via l'API backend
+        const response = await fetch('http://localhost:8000/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
         });
 
-        if (error) {
-          console.error(error);
-          return;
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message);
         }
 
-        if (data) {
-          console.log("Inscription réussie:", data);
-          setIsLogin(true); // Basculer vers le formulaire de connexion
-        }
+        console.log("Inscription réussie");
+        setIsLogin(true); // Basculer vers le formulaire de connexion
       }
     } catch (error) {
-      console.error(error);
+      console.error("Erreur:", error);
+      // Ici vous pouvez ajouter une notification d'erreur pour l'utilisateur
     }
   };
 
@@ -82,15 +79,15 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#2C2C2C] to-gray-100 flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-b from-[#3bee5e] to-[#ffffff] flex items-center justify-center">
       <div className="bg-white p-8 rounded-lg shadow-xl w-96">
-        <h2 className="text-2xl font-bold mb-6 text-center text-[#2C2C2C]">
+        <h2 className="text-2xl font-bold mb-6 text-center text-gray-900">
           {isLogin ? "Connexion" : "Inscription"}
         </h2>
         
         <div className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-[#2C2C2C]">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-900">
               Email
             </label>
             <input
@@ -99,12 +96,12 @@ export default function Login() {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#FF7043] focus:ring-[#FF7043]"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#3bee5e] focus:ring-[#3bee5e]"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-[#2C2C2C]">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-900">
               Mot de passe
             </label>
             <input
@@ -113,29 +110,29 @@ export default function Login() {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#FF7043] focus:ring-[#FF7043]"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#3bee5e] focus:ring-[#3bee5e]"
             />
           </div>
 
           <button
             onClick={handleAuth}
-            className="w-full bg-[#FF7043] text-white py-2 px-4 rounded-md hover:bg-[#FF5722] transition-colors"
+            className="w-full bg-[#3bee5e] text-white py-2 px-4 rounded-md hover:bg-[#32d951] transition-colors"
           >
             {isLogin ? "Se connecter" : "S'inscrire"}
           </button>
 
           <button
             onClick={handleGuestLogin}
-            className="w-full bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600 transition-colors"
+            className="w-full bg-[#3bee5e] text-white py-2 px-4 rounded-md hover:bg-[#32d951] transition-colors"
           >
             Continuer en tant qu'invité
           </button>
 
-          <p className="text-center text-sm text-[#2C2C2C]">
+          <p className="text-center text-sm text-gray-900">
             {isLogin ? "Pas encore de compte ?" : "Déjà un compte ?"}
             <button
               onClick={() => setIsLogin(!isLogin)}
-              className="ml-1 text-[#FF7043] hover:text-[#FF5722]"
+              className="ml-1 text-[#3bee5e] hover:text-[#32d951]"
             >
               {isLogin ? "S'inscrire" : "Se connecter"}
             </button>
