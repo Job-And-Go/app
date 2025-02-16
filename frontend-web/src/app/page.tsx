@@ -41,7 +41,7 @@ export default function Home() {
                 Se connecter
               </a>
               <a
-                href="/register" 
+                href="/login" 
                 className="bg-[#3bee5e] text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-[#32d951] transition-colors"
               >
                 S'inscrire
