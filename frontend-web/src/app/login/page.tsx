@@ -4,23 +4,29 @@ import { supabase } from "@/lib/supabase";
 import { useState } from "react";
 import { useRouter } from 'next/navigation';
 
+const FORM_STYLES = {
+  container: "min-h-screen bg-gradient-to-b from-green-400 to-white flex items-center justify-center",
+  card: "bg-white p-8 rounded-lg shadow-xl w-96",
+  title: "text-2xl font-bold mb-6 text-center text-gray-900",
+  formGroup: "space-y-4",
+  label: "block text-sm font-medium text-gray-900",
+  input: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 text-black",
+  button: "w-full bg-green-400 text-white py-2 px-4 rounded-md hover:bg-green-500 transition-colors",
+  link: "ml-1 text-green-400 hover:text-green-500"
+};
+
 export default function Login() {
   const router = useRouter();
   const [isLogin, setIsLogin] = useState(true);
-  const [formData, setFormData] = useState<{
-    email: string;
-    password: string;
-  }>({
+  const [formData, setFormData] = useState({
     email: "",
     password: "",
+    confirmPassword: "",
+    userType: "student",
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+  const handleChange = ({ target: { name, value } }: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleAuth = async (e: React.FormEvent) => {
@@ -28,102 +34,102 @@ export default function Login() {
     
     try {
       if (isLogin) {
-        // Connexion existante
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: formData.email,
-          password: formData.password,
-        });
-
+        const { error } = await supabase.auth.signInWithPassword(formData);
         if (error) throw error;
-        
-        console.log("Connexion réussie:", data);
         router.push('/');
       } else {
-        // Nouvelle inscription via l'API backend
+        if (formData.password !== formData.confirmPassword) {
+          throw new Error('Les mots de passe ne correspondent pas');
+        }
+        
         const response = await fetch('http://localhost:8000/api/auth/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password,
+            userType: formData.userType
+          })
         });
 
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.message);
-        }
-
-        console.log("Inscription réussie");
-        setIsLogin(true); // Basculer vers le formulaire de connexion
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Erreur lors de l\'inscription');
+        setIsLogin(true);
       }
-    } catch (error) {
-      console.error("Erreur:", error);
-      // Ici vous pouvez ajouter une notification d'erreur pour l'utilisateur
+    } catch (error: any) {
+      console.error("Erreur:", error.message);
+      // Ajouter une notification d'erreur ici
     }
   };
 
   const handleGuestLogin = async () => {
     try {
-      const { data, error } = await supabase.auth.signInAnonymously();
-      
-      if (error) {
-        console.error(error);
-        return;
-      }
-
-      if (data) {
-        console.log("Connexion anonyme réussie:", data);
-        router.push('/'); // Redirection vers la page d'accueil
-      }
-    } catch (error) {
-      console.error(error);
+      const { error } = await supabase.auth.signInAnonymously();
+      if (error) throw error;
+      router.push('/');
+    } catch (error: any) {
+      console.error("Erreur de connexion anonyme:", error.message);
     }
   };
 
+  const formFields = [
+    { id: 'email', label: 'Email', type: 'email' },
+    { id: 'password', label: 'Mot de passe', type: 'password' },
+    ...((!isLogin) ? [{ id: 'confirmPassword', label: 'Confirmer le mot de passe', type: 'password' }] : [])
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#3bee5e] to-[#ffffff] flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-xl w-96">
-        <h2 className="text-2xl font-bold mb-6 text-center text-gray-900">
+    <div className={FORM_STYLES.container}>
+      <div className={FORM_STYLES.card}>
+        <h2 className={FORM_STYLES.title}>
           {isLogin ? "Connexion" : "Inscription"}
         </h2>
         
-        <div className="space-y-4">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-900">
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#3bee5e] focus:ring-[#3bee5e]"
-            />
-          </div>
+        <form onSubmit={handleAuth} className={FORM_STYLES.formGroup}>
+          {formFields.map(({ id, label, type }) => (
+            <div key={id}>
+              <label htmlFor={id} className={FORM_STYLES.label}>
+                {label}
+              </label>
+              <input
+                type={type}
+                id={id}
+                name={id}
+                value={formData[id as keyof typeof formData]}
+                onChange={handleChange}
+                className={FORM_STYLES.input}
+                required
+              />
+            </div>
+          ))}
 
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-900">
-              Mot de passe
-            </label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#3bee5e] focus:ring-[#3bee5e]"
-            />
-          </div>
+          {!isLogin && (
+            <div>
+              <label htmlFor="userType" className={FORM_STYLES.label}>
+                Type de compte
+              </label>
+              <select
+                id="userType"
+                name="userType"
+                value={formData.userType}
+                onChange={handleChange}
+                className={FORM_STYLES.input}
+                required
+              >
+                <option value="student">Étudiant</option>
+                <option value="employer">Employeur</option>
+              </select>
+            </div>
+          )}
 
-          <button
-            onClick={handleAuth}
-            className="w-full bg-[#3bee5e] text-white py-2 px-4 rounded-md hover:bg-[#32d951] transition-colors"
-          >
+          <button type="submit" className={FORM_STYLES.button}>
             {isLogin ? "Se connecter" : "S'inscrire"}
           </button>
 
           <button
+            type="button"
             onClick={handleGuestLogin}
-            className="w-full bg-[#3bee5e] text-white py-2 px-4 rounded-md hover:bg-[#32d951] transition-colors"
+            className={FORM_STYLES.button}
           >
             Continuer en tant qu'invité
           </button>
@@ -131,13 +137,14 @@ export default function Login() {
           <p className="text-center text-sm text-gray-900">
             {isLogin ? "Pas encore de compte ?" : "Déjà un compte ?"}
             <button
+              type="button"
               onClick={() => setIsLogin(!isLogin)}
-              className="ml-1 text-[#3bee5e] hover:text-[#32d951]"
+              className={FORM_STYLES.link}
             >
               {isLogin ? "S'inscrire" : "Se connecter"}
             </button>
           </p>
-        </div>
+        </form>
       </div>
     </div>
   );
