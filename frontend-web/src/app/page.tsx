@@ -129,29 +129,37 @@ export default function Home() {
             {userType === 'employer' ? (
               <div className="flex justify-center">
                 <a
-                  href="/post-job"
+                  href="/jobs/create"
                   className="bg-[#3bee5e] text-white px-8 py-4 rounded-md text-lg font-medium hover:bg-[#32d951] transition-colors shadow-lg transform hover:scale-105 transition-transform"
                 >
                   Publier votre première annonce gratuitement
                 </a>
               </div>
             ) : (
-              <div className="bg-white p-4 shadow-lg rounded-lg max-w-2xl mx-auto border border-gray-200">
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <input
-                    type="text"
-                    placeholder="Stage, entreprise ou secteur"
-                    className="flex-1 p-3 bg-gray-50 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#3bee5e] focus:border-transparent placeholder-gray-400"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Ville ou région"
-                    className="flex-1 p-3 bg-gray-50 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#3bee5e] focus:border-transparent placeholder-gray-400"
-                  />
-                  <button className="bg-[#3bee5e] text-white px-6 py-3 rounded-md hover:bg-[#32d951] transition-colors">
-                    Rechercher
-                  </button>
+              <div className="flex flex-col items-center gap-6">
+                <div className="bg-white p-4 shadow-lg rounded-lg max-w-2xl mx-auto border border-gray-200">
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <input
+                      type="text"
+                      placeholder="Stage, entreprise ou secteur"
+                      className="flex-1 p-3 bg-gray-50 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#3bee5e] focus:border-transparent placeholder-gray-400"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Ville ou région"
+                      className="flex-1 p-3 bg-gray-50 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#3bee5e] focus:border-transparent placeholder-gray-400"
+                    />
+                    <button className="bg-[#3bee5e] text-white px-6 py-3 rounded-md hover:bg-[#32d951] transition-colors">
+                      Rechercher
+                    </button>
+                  </div>
                 </div>
+                <a
+                  href="/jobs"
+                  className="bg-white text-[#3bee5e] border-2 border-[#3bee5e] px-8 py-4 rounded-md text-lg font-medium hover:bg-[#3bee5e] hover:text-white transition-colors shadow-lg transform hover:scale-105"
+                >
+                  Voir toutes les offres disponibles
+                </a>
               </div>
             )}
           </div>

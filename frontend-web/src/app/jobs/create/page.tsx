@@ -32,6 +32,17 @@ export default function CreateJob() {
         return;
       }
 
+      // Vérifier le type d'utilisateur
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('type')
+        .eq('id', user.id)
+        .single();
+
+      if (!profileData || profileData.type !== 'employer') {
+        throw new Error('Seuls les employeurs peuvent publier des annonces');
+      }
+
       const { error } = await supabase
         .from('jobs')
         .insert({
@@ -40,7 +51,8 @@ export default function CreateJob() {
           description: jobData.description,
           location: jobData.location,
           salary: parseFloat(jobData.salary),
-          status: 'open'
+          status: 'open',
+          created_at: new Date().toISOString()
         });
 
       if (error) throw error;

@@ -33,6 +33,8 @@ export default function JobDetails({ params }: { params: { id: string } }) {
 
   useEffect(() => {
     const fetchJobAndProfile = async () => {
+      if (!params?.id) return; // Vérification de sécurité
+
       try {
         // Récupérer l'utilisateur actuel
         const { data: { user } } = await supabase.auth.getUser();
@@ -88,7 +90,7 @@ export default function JobDetails({ params }: { params: { id: string } }) {
     };
 
     fetchJobAndProfile();
-  }, [params.id, router]);
+  }, [params?.id, router]); // Utiliser params?.id au lieu de params.id
 
   const handleApply = async () => {
     try {
@@ -134,6 +136,14 @@ export default function JobDetails({ params }: { params: { id: string } }) {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
+      <div className="flex justify-end mb-4">
+        <button
+          onClick={() => router.push('/jobs')}
+          className="bg-gray-100 text-gray-700 px-4 py-2 rounded hover:bg-gray-200 transition-colors"
+        >
+          Retour aux offres
+        </button>
+      </div>
       <div className="bg-white rounded-lg shadow-lg p-6">
         <h1 className="text-3xl font-bold mb-4">{job.title}</h1>
         
