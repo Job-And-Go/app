@@ -23,9 +23,14 @@ export default function Login() {
     password: "",
     confirmPassword: "",
     userType: "student",
+    full_name: "",
+    bio: "",
+    avatar_url: "",
+    code_postal: "",
+    localite: "",
   });
 
-  const handleChange = ({ target: { name, value } }: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = ({ target: { name, value } }: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
@@ -48,7 +53,12 @@ export default function Login() {
           body: JSON.stringify({
             email: formData.email,
             password: formData.password,
-            userType: formData.userType
+            userType: formData.userType,
+            full_name: formData.full_name,
+            bio: formData.bio,
+            avatar_url: formData.avatar_url,
+            code_postal: formData.code_postal,
+            localite: formData.localite
           })
         });
 
@@ -75,7 +85,14 @@ export default function Login() {
   const formFields = [
     { id: 'email', label: 'Email', type: 'email' },
     { id: 'password', label: 'Mot de passe', type: 'password' },
-    ...((!isLogin) ? [{ id: 'confirmPassword', label: 'Confirmer le mot de passe', type: 'password' }] : [])
+    ...((!isLogin) ? [
+      { id: 'confirmPassword', label: 'Confirmer le mot de passe', type: 'password' },
+      { id: 'full_name', label: 'Nom complet', type: 'text' },
+      { id: 'bio', label: 'Biographie', type: 'textarea' },
+      { id: 'avatar_url', label: 'URL de l\'avatar', type: 'url' },
+      { id: 'code_postal', label: 'Code postal', type: 'text' },
+      { id: 'localite', label: 'Localité', type: 'text' }
+    ] : [])
   ];
 
   return (
@@ -91,15 +108,26 @@ export default function Login() {
               <label htmlFor={id} className={FORM_STYLES.label}>
                 {label}
               </label>
-              <input
-                type={type}
-                id={id}
-                name={id}
-                value={formData[id as keyof typeof formData]}
-                onChange={handleChange}
-                className={FORM_STYLES.input}
-                required
-              />
+              {type === 'textarea' ? (
+                <textarea
+                  id={id}
+                  name={id}
+                  value={formData[id as keyof typeof formData]}
+                  onChange={handleChange}
+                  className={FORM_STYLES.input}
+                  required
+                />
+              ) : (
+                <input
+                  type={type}
+                  id={id}
+                  name={id}
+                  value={formData[id as keyof typeof formData]}
+                  onChange={handleChange}
+                  className={FORM_STYLES.input}
+                  required
+                />
+              )}
             </div>
           ))}
 

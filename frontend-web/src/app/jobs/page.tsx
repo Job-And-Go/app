@@ -93,9 +93,17 @@ export default function Jobs() {
     }));
   };
 
+  const handleJobClick = (jobId: string) => {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    router.push(`/jobs/${jobId}`);
+  };
+
   return (
     <div>
-      <nav className="bg-white shadow-lg fixed top-0 w-full z-10">
+      <nav className="bg-white shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
@@ -111,22 +119,22 @@ export default function Jobs() {
               {user ? (
                 <div className="relative">
                   <button
-                    onClick={() => setShowProfileMenu(!showProfileMenu)}
+                    onClick={() => user.email ? setShowProfileMenu(!showProfileMenu) : router.push('/login')}
                     className="bg-[#3bee5e] text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-[#32d951] transition-colors"
                   >
-                    {user.email.split('@')[0]}
+                    {user.email ? user.email.split('@')[0] : 'Invité'}
                   </button>
                   
                   {showProfileMenu && (
                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 border border-gray-200">
                       <a
-                        href="/profile"
+                        href={user.email ? "/profile" : "/login"}
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >
                         Mon Profil
                       </a>
                       <a
-                        href="/settings"
+                        href={user.email ? "/settings" : "/login"}
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >
                         Paramètres
@@ -215,10 +223,18 @@ export default function Jobs() {
                 <span>{job.salary}€</span>
               </div>
               <button
-                onClick={() => router.push(`/jobs/${job.id}`)}
+                onClick={() => {
+                  if (!user?.email) {
+                    if (confirm("Vous devez être connecté pour voir les détails de l'offre. Souhaitez-vous vous connecter ?")) {
+                      router.push('/login');
+                    }
+                  } else {
+                    handleJobClick(job.id);
+                  }
+                }}
                 className="mt-4 w-full bg-[#3bee5e] text-white py-2 rounded hover:bg-[#32d951] transition-colors"
               >
-                Voir les détails
+                {user?.email ? "Voir les détails" : "Se connecter pour voir les détails"}
               </button>
             </div>
           ))}

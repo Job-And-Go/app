@@ -54,22 +54,22 @@ export default function Home() {
               {user ? (
                 <div className="relative">
                   <button
-                    onClick={() => setShowProfileMenu(!showProfileMenu)}
+                    onClick={() => user.email ? setShowProfileMenu(!showProfileMenu) : router.push('/login')}
                     className="bg-[#3bee5e] text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-[#32d951] transition-colors"
                   >
-                    {user.email.split('@')[0]}
+                    {user.email ? user.email.split('@')[0] : 'Invité'}
                   </button>
                   
                   {showProfileMenu && (
                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 border border-gray-200">
                       <a
-                        href="/profile"
+                        href={user.email ? "/profile" : "/login"}
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >
                         Mon Profil
                       </a>
                       <a
-                        href="/settings"
+                        href={user.email ? "/settings" : "/login"}
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >
                         Paramètres
