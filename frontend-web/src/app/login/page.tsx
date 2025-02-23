@@ -12,25 +12,26 @@ const FORM_STYLES = {
   label: "block text-sm font-medium text-gray-900",
   input: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 text-black",
   button: "w-full bg-green-400 text-white py-2 px-4 rounded-md hover:bg-green-500 transition-colors",
-  link: "ml-1 text-green-400 hover:text-green-500"
+  link: "ml-1 text-green-400 hover:text-green-500",
+  typeSelector: "flex gap-4 mb-6",
+  typeButton: "flex-1 p-4 rounded-lg border-2 border-gray-200 hover:border-green-400 transition-all cursor-pointer",
+  typeButtonActive: "flex-1 p-4 rounded-lg border-2 border-green-400 bg-green-50 transition-all cursor-pointer"
 };
 
 export default function Login() {
   const router = useRouter();
   const [isLogin, setIsLogin] = useState(true);
+  const [userType, setUserType] = useState<'student' | 'employer' | null>(null);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     confirmPassword: "",
-    userType: "student",
     full_name: "",
-    bio: "",
-    avatar_url: "",
-    code_postal: "",
-    localite: "",
+    type: ""
   });
 
-  const handleChange = ({ target: { name, value } }: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
@@ -39,10 +40,17 @@ export default function Login() {
     
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword(formData);
+        const { error } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password
+        });
         if (error) throw error;
         router.push('/');
       } else {
+        if (!userType) {
+          throw new Error('Veuillez sélectionner un type de compte');
+        }
+        
         if (formData.password !== formData.confirmPassword) {
           throw new Error('Les mots de passe ne correspondent pas');
         }
@@ -53,22 +61,18 @@ export default function Login() {
           body: JSON.stringify({
             email: formData.email,
             password: formData.password,
-            userType: formData.userType,
             full_name: formData.full_name,
-            bio: formData.bio,
-            avatar_url: formData.avatar_url,
-            code_postal: formData.code_postal,
-            localite: formData.localite
+            type: userType
           })
         });
 
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || 'Erreur lors de l\'inscription');
-        setIsLogin(true);
+        
+        router.push('/profile/complete');
       }
     } catch (error: any) {
       console.error("Erreur:", error.message);
-      // Ajouter une notification d'erreur ici
     }
   };
 
@@ -88,10 +92,6 @@ export default function Login() {
     ...((!isLogin) ? [
       { id: 'confirmPassword', label: 'Confirmer le mot de passe', type: 'password' },
       { id: 'full_name', label: 'Nom complet', type: 'text' },
-      { id: 'bio', label: 'Biographie', type: 'textarea' },
-      { id: 'avatar_url', label: 'URL de l\'avatar', type: 'url' },
-      { id: 'code_postal', label: 'Code postal', type: 'text' },
-      { id: 'localite', label: 'Localité', type: 'text' }
     ] : [])
   ];
 
@@ -101,6 +101,25 @@ export default function Login() {
         <h2 className={FORM_STYLES.title}>
           {isLogin ? "Connexion" : "Inscription"}
         </h2>
+        
+        {!isLogin && (
+          <div className={FORM_STYLES.typeSelector}>
+            <div 
+              className={userType === 'student' ? FORM_STYLES.typeButtonActive : FORM_STYLES.typeButton}
+              onClick={() => setUserType('student')}
+            >
+              <h3 className="text-lg font-semibold text-center">Étudiant</h3>
+              <p className="text-sm text-gray-600 text-center mt-2">Je cherche un job étudiant</p>
+            </div>
+            <div 
+              className={userType === 'employer' ? FORM_STYLES.typeButtonActive : FORM_STYLES.typeButton}
+              onClick={() => setUserType('employer')}
+            >
+              <h3 className="text-lg font-semibold text-center">Employeur</h3>
+              <p className="text-sm text-gray-600 text-center mt-2">Je propose des jobs</p>
+            </div>
+          </div>
+        )}
         
         <form onSubmit={handleAuth} className={FORM_STYLES.formGroup}>
           {formFields.map(({ id, label, type }) => (
@@ -131,25 +150,6 @@ export default function Login() {
             </div>
           ))}
 
-          {!isLogin && (
-            <div>
-              <label htmlFor="userType" className={FORM_STYLES.label}>
-                Type de compte
-              </label>
-              <select
-                id="userType"
-                name="userType"
-                value={formData.userType}
-                onChange={handleChange}
-                className={FORM_STYLES.input}
-                required
-              >
-                <option value="student">Étudiant</option>
-                <option value="employer">Employeur</option>
-              </select>
-            </div>
-          )}
-
           <button type="submit" className={FORM_STYLES.button}>
             {isLogin ? "Se connecter" : "S'inscrire"}
           </button>
@@ -166,7 +166,10 @@ export default function Login() {
             {isLogin ? "Pas encore de compte ?" : "Déjà un compte ?"}
             <button
               type="button"
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setUserType(null);
+              }}
               className={FORM_STYLES.link}
             >
               {isLogin ? "S'inscrire" : "Se connecter"}
