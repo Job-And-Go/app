@@ -141,6 +141,16 @@ export default function Navbar({ user, userProfile, handleSignOut }: NavbarProps
                     >
                       Mon Profil
                     </a>
+                    {userProfile?.type === 'student' && (
+                      <>
+                        <a
+                          href="/favorites"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          Mes Favoris
+                        </a>
+                      </>
+                    )}
                     <a
                       href={user.email ? "/settings" : "/login"}
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"

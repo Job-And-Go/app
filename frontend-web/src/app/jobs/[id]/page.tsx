@@ -4,6 +4,8 @@ import { supabase } from "@/lib/supabase";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from '@/components/Navbar';
+import FavoriteButton from '@/components/FavoriteButton';
+import { User } from '@supabase/supabase-js';
 
 type Job = {
   id: string;
@@ -38,7 +40,7 @@ export default function JobDetails({ params }: { params: { id: string } }) {
   const [application, setApplication] = useState<Application | null>(null);
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -192,7 +194,12 @@ export default function JobDetails({ params }: { params: { id: string } }) {
           </button>
         </div>
         <div className="bg-white rounded-lg shadow-lg p-6">
-          <h1 className="text-3xl font-bold mb-4 text-black">{job.title}</h1>
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-3xl font-bold text-black">{job.title}</h1>
+            {userProfile?.type === 'student' && (
+              <FavoriteButton jobId={job.id} userId={user?.id || ''} />
+            )}
+          </div>
           
           <div className="mb-6">
             <p className="text-black">Publié par {job.employer.full_name}</p>
