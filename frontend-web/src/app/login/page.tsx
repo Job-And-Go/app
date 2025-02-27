@@ -55,21 +55,40 @@ export default function Login() {
           throw new Error('Les mots de passe ne correspondent pas');
         }
         
-        const response = await fetch('http://localhost:8000/api/auth/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: formData.email,
-            password: formData.password,
-            full_name: formData.full_name,
-            type: userType
-          })
+        if (!formData.email || !formData.password || !userType || !formData.full_name) {
+          throw new Error('Tous les champs sont requis');
+        }
+
+        // Inscription de l'utilisateur
+        const { data: authData, error: signUpError } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
         });
 
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || 'Erreur lors de l\'inscription');
+        if (signUpError) throw signUpError;
+        if (!authData.user) throw new Error('Erreur lors de la création du compte');
+
+        // Création du profil dans la table profiles
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: authData.user.id,
+            full_name: formData.full_name,
+            type: userType,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+
+        if (profileError) throw profileError;
         
-        router.push('/profile/complete');
+        // Redirection vers la page de connexion
+        setIsLogin(true);
+        setFormData({
+          ...formData,
+          confirmPassword: '',
+          type: ''
+        });
+        setUserType(null);
       }
     } catch (error: any) {
       console.error("Erreur:", error.message);

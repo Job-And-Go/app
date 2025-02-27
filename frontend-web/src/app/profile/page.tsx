@@ -4,15 +4,18 @@ import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import LocationSearch from '@/components/LocationSearch';
+import FileUpload from '@/components/FileUpload'; 
 
 export default function Profile() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
   const [userProfile, setUserProfile] = useState({
     full_name: "",
     type: "",
     bio: "",
-    avatar_url: "", 
+    avatar_url: "",
+    cv_url: "",
     code_postal: "",
     localite: "",
   });
@@ -25,6 +28,7 @@ export default function Profile() {
           router.push('/login');
           return;
         }
+        setUser(user);
 
         const { data: profile } = await supabase
           .from('profiles')
@@ -38,6 +42,7 @@ export default function Profile() {
             type: profile.type || "",
             bio: profile.bio || "",
             avatar_url: profile.avatar_url || "",
+            cv_url: profile.cv_url || "",
             code_postal: profile.code_postal || "",
             localite: profile.localite || "",
           });
@@ -71,6 +76,13 @@ export default function Profile() {
     }));
   };
 
+  const handleFileUpload = (type: 'cv' | 'avatar') => (url: string) => {
+    setUserProfile(prev => ({
+      ...prev,
+      [type === 'cv' ? 'cv_url' : 'avatar_url']: url
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -89,6 +101,7 @@ export default function Profile() {
           type: userProfile.type,
           bio: userProfile.bio,
           avatar_url: userProfile.avatar_url,
+          cv_url: userProfile.cv_url,
           code_postal: userProfile.code_postal,
           localite: userProfile.localite,
           updated_at: new Date().toISOString(),
@@ -157,6 +170,35 @@ export default function Profile() {
             <label className="block text-sm font-medium text-gray-700">Localisation</label>
             <LocationSearch onSelect={handleLocationSelect} />
           </div>
+
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Photo de profil
+            </label>
+            <FileUpload
+              type="avatar"
+              onUploadComplete={handleFileUpload('avatar')}
+              existingUrl={userProfile.avatar_url}
+              userId={user?.id || ''}
+            />
+          </div>
+
+          {userProfile.type === 'student' && (
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                CV (PDF)
+                <span className="text-xs text-gray-500 ml-1">
+                  (Format PDF uniquement, max 5MB)
+                </span>
+              </label>
+              <FileUpload
+                type="cv"
+                onUploadComplete={handleFileUpload('cv')}
+                existingUrl={userProfile.cv_url}
+                userId={user?.id || ''}
+              />
+            </div>
+          )}
 
           <button
             type="submit"

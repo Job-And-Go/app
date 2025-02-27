@@ -22,12 +22,14 @@ type UserType = typeof VALID_USER_TYPES[number];
 
 router.post('/register', async (req, res) => {
   try {
-    const { email, password, userType } = req.body;
+    console.log('Données reçues:', req.body);
+    const { email, password, userType, full_name } = req.body;
 
     // Valider les champs requis
-    if (!email || !password || !userType) {
+    if (!email || !password || !userType || !full_name) {
+      console.log('Validation échouée:', { email, userType, full_name });
       return res.status(400).json({ 
-        error: 'Email, mot de passe et type d\'utilisateur sont requis' 
+        error: 'Email, mot de passe, type d\'utilisateur et nom complet sont requis' 
       });
     }
 
@@ -42,7 +44,7 @@ router.post('/register', async (req, res) => {
     const { data: userData, error: userError } = await supabase.auth.admin.createUser({
       email,
       password,
-      user_metadata: { type: userType },
+      user_metadata: { type: userType, full_name },
     });
 
     if (userError || !userData?.user) {
@@ -52,16 +54,25 @@ router.post('/register', async (req, res) => {
       });
     }
 
-    // Créer le profil
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .insert({
-        id: userData.user.id,
-        type: userType,
-        created_at: new Date().toISOString(),
-      });
+    console.log('Utilisateur créé:', userData.user.id);
 
-    if (profileError) {
+    // Créer le profil
+    const profileData = {
+      id: userData.user.id,
+      type: userType,
+      full_name: full_name,
+      created_at: new Date().toISOString(),
+    };
+
+    console.log('Tentative création profil:', profileData);
+
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .insert(profileData)
+      .select()
+      .single();
+
+    if (profileError || !profile) {
       console.error('Erreur insertion profil:', profileError);
       await supabase.auth.admin.deleteUser(userData.user.id);
       return res.status(400).json({ 
@@ -69,9 +80,10 @@ router.post('/register', async (req, res) => {
       });
     }
 
-    return res.status(201).json({ user: userData });
+    console.log('Profil créé avec succès:', profile);
+    return res.status(201).json({ user: userData, profile });
   } catch (error) {
-    console.error('Erreur d\'inscription:', error);
+    console.error('Erreur d\'inscription complète:', error);
     return res.status(500).json({ 
       error: 'Erreur lors de l\'inscription' 
     });

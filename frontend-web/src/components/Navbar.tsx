@@ -128,8 +128,15 @@ export default function Navbar({ user, userProfile, handleSignOut }: NavbarProps
               <div className="relative">
                 <button
                   onClick={() => user.email ? setShowProfileMenu(!showProfileMenu) : router.push('/login')}
-                  className="bg-[#3bee5e] text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-[#32d951] transition-colors"
+                  className="bg-[#3bee5e] text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-[#32d951] transition-colors flex items-center gap-2"
                 >
+                  {userProfile?.avatar_url && (
+                    <img
+                      src={userProfile.avatar_url}
+                      alt="Photo de profil"
+                      className="w-6 h-6 rounded-full object-cover"
+                    />
+                  )}
                   {user.email ? (userProfile?.full_name || user.email.split('@')[0]) : 'Invité'}
                 </button>
                 
