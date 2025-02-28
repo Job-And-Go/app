@@ -1,0 +1,86 @@
+{
+    "categories": {
+        "Transport": [
+            "Aide au déménagement",
+            "Collecte d'encombrants", 
+            "Petite livraison locale"
+        ],
+        "Bricolage": [
+            "Peinture simple",
+            "Aide en électricité basique",
+            "Assemblage de meubles",
+            "Réparations simples",
+            "Petits travaux de bricolage"
+        ],
+        "Jardinage": [
+            "Tonte de pelouse",
+            "Arrosage de plantes", 
+            "Nettoyage de terrasse",
+            "Elagage de haies"
+        ],
+        "Ménage": [
+            "Nettoyage de vitres légères",
+            "Aide au repassage",
+            "Nettoyage simple"
+        ],
+        "Cours particuliers": [
+            "Aide aux devoirs",
+            "Cours de mathématiques",
+            "Cours de langue",
+            "Cours de musique",
+            "Cours d'informatique"
+        ],
+        "Petsitting": [
+            "Promenade de chiens",
+            "Visite d'animaux à domicile",
+            "Nourrissage d'animaux"
+        ],
+        "Aide administrative": [
+            "Aide à la gestion de courriers",
+            "Assistance numérique",
+            "Classement de documents",
+            "Envoi de courriers/emails"
+        ],
+        "Événements": [
+            "Animation pour enfants",
+            "Photographie",
+            "Décoration", 
+            "Spectacle de magie",
+            "Musicien",
+            "DJ débutant",
+            "Clown pour enfants",
+            "aide au service traiteur",
+            "barman/barmaid",
+            "serveur/serveuse"
+        ],
+        "Informatique": [
+            "Dépannage informatique",
+            "Installation d'ordinateur",
+            "Assistance à l'utilisation de logiciels",
+            "Création de contenu simple"
+        ],
+        "Réseaux sociaux": [
+            "Création de contenu",
+            "Gestion de compte"
+        ],
+        "Développement": [
+            "Front-end",
+            "Back-end",
+            "Full-stack",
+            "Mobile",
+            "DevOps"
+        ],
+        "Design": [
+            "UI/UX",
+            "Graphisme",
+            "Motion Design",
+            "3D"
+        ],
+        "Marketing": [
+            "SEO/SEA",
+            "Social Media",
+            "Content Marketing",
+            "Email Marketing"
+        ]
+    }
+}

@@ -1,7 +1,7 @@
 'use client';
 
 import { supabase } from "@/lib/supabase";
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from '@/components/Navbar';
 import FavoriteButton from '@/components/FavoriteButton';
@@ -33,7 +33,9 @@ type Application = {
   };
 };
 
-export default function JobDetails({ params }: { params: { id: string } }) {
+export default function JobDetails({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params);
+  const { id } = resolvedParams;
   const router = useRouter();
   const [job, setJob] = useState<Job | null>(null);
   const [userProfile, setUserProfile] = useState<{ id: string; type: string } | null>(null);
@@ -50,7 +52,7 @@ export default function JobDetails({ params }: { params: { id: string } }) {
 
   useEffect(() => {
     const fetchJobAndProfile = async () => {
-      if (!params?.id) return;
+      if (!id) return;
 
       try {
         const { data: { user } } = await supabase.auth.getUser();
@@ -77,7 +79,7 @@ export default function JobDetails({ params }: { params: { id: string } }) {
             *,
             employer:profiles(id, full_name)
           `)
-          .eq('id', params.id)
+          .eq('id', id)
           .single();
 
         if (jobData) {
@@ -88,7 +90,7 @@ export default function JobDetails({ params }: { params: { id: string } }) {
           const { data: applicationData } = await supabase
             .from('applications')
             .select('*')
-            .eq('job_id', params.id)
+            .eq('job_id', id)
             .eq('student_id', user.id)
             .single();
 
@@ -102,7 +104,7 @@ export default function JobDetails({ params }: { params: { id: string } }) {
               *,
               student:profiles(id, full_name, bio)
             `)
-            .eq('job_id', params.id);
+            .eq('job_id', id);
 
           if (applicationsData) {
             setApplications(applicationsData);
@@ -117,7 +119,7 @@ export default function JobDetails({ params }: { params: { id: string } }) {
     };
 
     fetchJobAndProfile();
-  }, [params?.id, router]);
+  }, [id, router]);
 
   const handleApply = async () => {
     try {
@@ -130,7 +132,7 @@ export default function JobDetails({ params }: { params: { id: string } }) {
       const { error } = await supabase
         .from('applications')
         .insert({
-          job_id: params.id,
+          job_id: id,
           student_id: user.id,
           status: 'pending'
         });
@@ -140,7 +142,7 @@ export default function JobDetails({ params }: { params: { id: string } }) {
       const { data } = await supabase
         .from('applications')
         .select('*')
-        .eq('job_id', params.id)
+        .eq('job_id', id)
         .eq('student_id', user.id)
         .single();
 
