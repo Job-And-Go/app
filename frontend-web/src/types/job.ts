@@ -5,8 +5,14 @@ interface Job {
   description: string;
   location: string;
   salary: number;
-  status: string;
+  is_open: boolean;
   created_at: string;
+  employer: {
+    id: string;
+    full_name: string;
+  };
+  max_applications: number | null;
+  accepted_applications: number;
 }
 
 interface Application {

@@ -1,21 +1,53 @@
 'use client';
 
 import { supabase } from "@/lib/supabase";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from '@/components/Navbar';
 import LocationSearch from '@/components/LocationSearch';
+import categoriesData from '@/data/categories.json';
+
+type Categories = {
+  [key: string]: string[];
+};
 
 export default function CreateJob() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
-  const [userProfile, setUserProfile] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<{
+    id: string;
+    type: string;
+    full_name: string;
+    avatar_url: string;
+    // autres champs nécessaires
+  } | null>(null);
+  const [categories] = useState<Categories>(categoriesData.categories);
   const [jobData, setJobData] = useState({
     title: "",
     description: "", 
     location: "",
     salary: "",
+    category: "",
+    subcategory: "",
+    max_applications: "",
   });
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+        setUserProfile(profile);
+      }
+    };
+    fetchUserProfile();
+  }, []);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -23,11 +55,12 @@ export default function CreateJob() {
     router.push('/login');
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setJobData(prev => ({
       ...prev,
-      [name]: value
+      [name]: value,
+      ...(name === 'category' ? { subcategory: '' } : {})
     }));
   };
 
@@ -49,11 +82,12 @@ export default function CreateJob() {
         return;
       }
 
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('type')
-        .eq('id', user.id)
-        .single();
+    // Après
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
 
       if (!profileData || profileData.type !== 'employer') {
         throw new Error('Seuls les employeurs peuvent publier des annonces');
@@ -67,8 +101,12 @@ export default function CreateJob() {
           description: jobData.description,
           location: jobData.location,
           salary: parseFloat(jobData.salary),
-          status: 'open',
-          created_at: new Date().toISOString()
+          is_open: true,
+          created_at: new Date().toISOString(),
+          category: jobData.category,
+          subcategory: jobData.subcategory,
+          max_applications: jobData.max_applications ? parseInt(jobData.max_applications) : null,
+          accepted_applications: 0
         });
 
       if (error) throw error;
@@ -81,7 +119,7 @@ export default function CreateJob() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Navbar
+      <Navbar 
         user={user}
         userProfile={userProfile}
         handleSignOut={handleSignOut}
@@ -114,6 +152,44 @@ export default function CreateJob() {
           </div>
 
           <div>
+            <label className="block text-sm font-medium mb-2 text-black">Catégorie</label>
+            <select
+              name="category"
+              value={jobData.category}
+              onChange={handleChange}
+              className="w-full p-2 border rounded focus:ring-2 focus:ring-[#3bee5e] text-black"
+              required
+            >
+              <option value="">Sélectionnez une catégorie</option>
+              {Object.keys(categories).map(category => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {jobData.category && (
+            <div>
+              <label className="block text-sm font-medium mb-2 text-black">Sous-catégorie</label>
+              <select
+                name="subcategory"
+                value={jobData.subcategory}
+                onChange={handleChange}
+                className="w-full p-2 border rounded focus:ring-2 focus:ring-[#3bee5e] text-black"
+                required
+              >
+                <option value="">Sélectionnez une sous-catégorie</option>
+                {categories[jobData.category]?.map(subcategory => (
+                  <option key={subcategory} value={subcategory}>
+                    {subcategory}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <div>
             <label className="block text-sm font-medium mb-2 text-black">Localisation</label>
             <LocationSearch onSelect={handleLocationSelect} />
           </div>
@@ -127,6 +203,21 @@ export default function CreateJob() {
               onChange={handleChange}
               className="w-full p-2 border rounded focus:ring-2 focus:ring-[#3bee5e] text-black"
               required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2 text-black">
+              Nombre maximum de candidatures acceptées
+            </label>
+            <input
+              type="number"
+              name="max_applications"
+              value={jobData.max_applications}
+              onChange={handleChange}
+              className="w-full p-2 border rounded focus:ring-2 focus:ring-[#3bee5e] text-black"
+              min="1"
+              placeholder="Laissez vide pour illimité"
             />
           </div>
 

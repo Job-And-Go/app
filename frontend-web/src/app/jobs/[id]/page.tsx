@@ -13,12 +13,14 @@ type Job = {
   description: string;
   location: string;
   salary: number;
-  status: string;
+  is_open: boolean;
   created_at: string;
   employer: {
     id: string;
     full_name: string;
   };
+  max_applications?: number;
+  accepted_applications?: number;
 };
 
 type Application = {
@@ -38,7 +40,13 @@ export default function JobDetails({ params }: { params: Promise<{ id: string }>
   const { id } = resolvedParams;
   const router = useRouter();
   const [job, setJob] = useState<Job | null>(null);
-  const [userProfile, setUserProfile] = useState<{ id: string; type: string } | null>(null);
+  const [userProfile, setUserProfile] = useState<{
+    id: string;
+    type: string;
+    full_name: string;
+    avatar_url: string;
+    // autres champs nécessaires
+  } | null>(null);
   const [application, setApplication] = useState<Application | null>(null);
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,7 +73,7 @@ export default function JobDetails({ params }: { params: Promise<{ id: string }>
 
         const { data: profileData } = await supabase
           .from('profiles')
-          .select('id, type')
+          .select('*')
           .eq('id', user.id)
           .single();
 
@@ -156,6 +164,32 @@ export default function JobDetails({ params }: { params: Promise<{ id: string }>
 
   const handleApplicationStatus = async (applicationId: string, newStatus: string) => {
     try {
+      // Vérifier si on accepte une candidature
+      if (newStatus === 'accepted') {
+        // Récupérer les informations actuelles du job
+        const { data: jobData, error: jobError } = await supabase
+          .from('jobs')
+          .select('max_applications, accepted_applications')
+          .eq('id', id)
+          .single();
+
+        if (jobError) throw jobError;
+
+        const newAcceptedCount = (jobData.accepted_applications || 0) + 1;
+
+        // Mettre à jour le nombre de candidatures acceptées
+        const { error: updateError } = await supabase
+          .from('jobs')
+          .update({ 
+            accepted_applications: newAcceptedCount,
+            is_open: jobData.max_applications ? newAcceptedCount < jobData.max_applications : true
+          })
+          .eq('id', id);
+
+        if (updateError) throw updateError;
+      }
+
+      // Mettre à jour le statut de la candidature
       const { error } = await supabase
         .from('applications')
         .update({ status: newStatus })
@@ -166,8 +200,24 @@ export default function JobDetails({ params }: { params: Promise<{ id: string }>
       setApplications(applications.map(app => 
         app.id === applicationId ? { ...app, status: newStatus } : app
       ));
+
     } catch (error) {
       console.error("Erreur lors de la mise à jour du statut:", error);
+    }
+  };
+
+  const handleJobStatus = async (newIsOpen: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('jobs')
+        .update({ is_open: newIsOpen })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setJob(prev => prev ? { ...prev, is_open: newIsOpen } : null);
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour du statut de l'offre:", error);
     }
   };
 
@@ -209,9 +259,9 @@ export default function JobDetails({ params }: { params: Promise<{ id: string }>
               <span className="text-black">{job.location}</span>
               <span className="text-black">{job.salary}€</span>
               <span className={`px-2 py-1 rounded text-sm ${
-                job.status === 'open' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                job.is_open ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
               }`}>
-                {job.status === 'open' ? 'Ouvert' : 'Fermé'}
+                {job.is_open ? 'Ouvert' : 'Fermé'}
               </span>
             </div>
           </div>
@@ -219,6 +269,11 @@ export default function JobDetails({ params }: { params: Promise<{ id: string }>
           <div className="prose max-w-none mb-6">
             <h2 className="text-xl font-semibold mb-2 text-black">Description du poste</h2>
             <p className="whitespace-pre-line text-black">{job.description}</p>
+            {job.max_applications && (
+              <div className="mt-4 text-sm text-gray-600">
+                Places restantes : {job.max_applications - (job.accepted_applications || 0)}
+              </div>
+            )}
           </div>
 
           {userProfile?.type === 'employer' ? (
@@ -263,7 +318,7 @@ export default function JobDetails({ params }: { params: Promise<{ id: string }>
                 ))}
               </div>
             </div>
-          ) : userProfile?.type === 'student' && job.status === 'open' && (
+          ) : userProfile?.type === 'student' && job.is_open && (
             <div className="mt-6">
               {!application ? (
                 <button
@@ -283,6 +338,29 @@ export default function JobDetails({ params }: { params: Promise<{ id: string }>
                   </p>
                 </div>
               )}
+            </div>
+          )}
+
+          {userProfile?.type === 'employer' && userProfile.id === job.employer.id && (
+            <div className="mt-4 border-t pt-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-black">Statut de l'offre</h3>
+                <button
+                  onClick={() => handleJobStatus(!job.is_open)}
+                  className={`px-4 py-2 rounded-lg ${
+                    job.is_open 
+                      ? 'bg-red-500 hover:bg-red-600 text-white' 
+                      : 'bg-green-500 hover:bg-green-600 text-white'
+                  }`}
+                >
+                  {job.is_open ? "Fermer l'offre" : "Réouvrir l'offre"}
+                </button>
+              </div>
+              <p className="text-sm text-gray-600 mt-2">
+                {job.is_open 
+                  ? "L'offre est actuellement ouverte aux candidatures" 
+                  : "L'offre est actuellement fermée aux candidatures"}
+              </p>
             </div>
           )}
         </div>

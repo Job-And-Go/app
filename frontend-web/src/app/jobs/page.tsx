@@ -4,6 +4,11 @@ import { supabase } from "@/lib/supabase";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from '@/components/Navbar';
+import categoriesData from '@/data/categories.json';
+
+type Categories = {
+  [key: string]: string[];
+};
 
 type Job = {
   id: string;
@@ -16,6 +21,8 @@ type Job = {
   employer: {
     full_name: string;
   };
+  category: string | null;
+  subcategory: string | null;
 };
 
 export default function Jobs() {
@@ -27,8 +34,12 @@ export default function Jobs() {
   const [filters, setFilters] = useState({
     location: "",
     minSalary: "",
-    status: "open"
+    status: "open",
+    category: "",
+    subcategory: ""
   });
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [categories] = useState<Categories>(categoriesData.categories);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -46,7 +57,7 @@ export default function Jobs() {
         *,
         employer:profiles!jobs_employer_id_fkey(full_name)
       `)
-      .eq('status', 'open');
+      .eq('is_open', true);
 
     // Si l'utilisateur est connecté, vérifier son type
     if (user) {
@@ -69,6 +80,14 @@ export default function Jobs() {
 
     if (filters.minSalary) {
       query = query.gte('salary', parseFloat(filters.minSalary));
+    }
+
+    if (filters.category) {
+      query = query.eq('category', filters.category);
+    }
+
+    if (filters.subcategory) {
+      query = query.eq('subcategory', filters.subcategory);
     }
 
     const { data, error } = await query;
@@ -136,14 +155,14 @@ export default function Jobs() {
         </div>
 
         <div className="bg-white p-4 rounded shadow mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
             <input
               type="text"
               name="location"
               placeholder="Filtrer par lieu"
               value={filters.location}
               onChange={handleFilterChange}
-              className="p-2 border rounded"
+              className="p-2 border rounded text-black"
             />
             <input
               type="number"
@@ -151,13 +170,47 @@ export default function Jobs() {
               placeholder="Salaire minimum"
               value={filters.minSalary}
               onChange={handleFilterChange}
-              className="p-2 border rounded"
+              className="p-2 border rounded text-black"
             />
+            <select
+              name="category"
+              value={filters.category}
+              onChange={(e) => {
+                handleFilterChange(e);
+                setSelectedCategory(e.target.value);
+                setFilters(prev => ({ ...prev, subcategory: "" }));
+              }}
+              className="p-2 border rounded text-black"
+            >
+              <option value="">Toutes les catégories</option>
+              {Object.keys(categories).map(category => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+
+            {filters.category && (
+              <select
+                name="subcategory"
+                value={filters.subcategory}
+                onChange={handleFilterChange}
+                className="p-2 border rounded text-black"
+              >
+                <option value="">Toutes les sous-catégories</option>
+                {categories[filters.category]?.map(subcategory => (
+                  <option key={subcategory} value={subcategory}>
+                    {subcategory}
+                  </option>
+                ))}
+              </select>
+            )}
+
             <select
               name="status"
               value={filters.status}
               onChange={handleFilterChange}
-              className="p-2 border rounded"
+              className="p-2 border rounded text-black"
             >
               <option value="open">Offres ouvertes</option>
               <option value="closed">Offres fermées</option>
@@ -168,7 +221,17 @@ export default function Jobs() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {jobs.map(job => (
             <div key={job.id} className="bg-white p-6 rounded shadow">
-              <h2 className="text-xl font-semibold mb-2">{job.title}</h2>
+              <div className="flex justify-between items-start mb-2">
+                <h2 className="text-xl font-semibold">{job.title}</h2>
+                <div className="flex gap-2">
+                  <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-sm">
+                    {job.category}
+                  </span>
+                  <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-sm">
+                    {job.subcategory}
+                  </span>
+                </div>
+              </div>
               <p className="text-gray-600 mb-4">{job.employer.full_name}</p>
               <p className="text-gray-800 mb-4 line-clamp-3">{job.description}</p>
               <div className="flex justify-between items-center text-sm text-gray-600">
