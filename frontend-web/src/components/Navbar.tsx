@@ -91,8 +91,8 @@ export default function Navbar({ user, userProfile, handleSignOut }: NavbarProps
           read: message.read,
           sender_id: message.sender_id,
           sender: {
-            full_name: message.sender?.full_name || '',
-            avatar_url: message.sender?.avatar_url || ''
+            full_name: message.sender[0]?.full_name || '',
+            avatar_url: message.sender[0]?.avatar_url || ''
           }
         }));
         setRecentMessages(formattedMessages);
