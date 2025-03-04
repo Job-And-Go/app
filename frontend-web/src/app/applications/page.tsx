@@ -8,10 +8,13 @@ type Application = {
   id: string;
   status: string;
   created_at: string;
+  student_id: string;
   job: {
     title: string;
+    employer_id: string;
   };
   student: {
+    id: string;
     full_name: string;
   };
 };
@@ -44,8 +47,8 @@ export default function Applications() {
           .from('applications')
           .select(`
             *,
-            job:jobs(title),
-            student:profiles(full_name)
+            job:jobs(title, employer_id),
+            student:profiles(id, full_name)
           `)
           .order('created_at', { ascending: false });
 
@@ -80,6 +83,10 @@ export default function Applications() {
     } catch (error) {
       console.error("Erreur lors de la mise à jour du statut:", error);
     }
+  };
+
+  const handleMessageClick = (applicationId: string, otherUserId: string) => {
+    router.push(`/messages?application=${applicationId}&user=${otherUserId}`);
   };
 
   return (
@@ -117,15 +124,28 @@ export default function Applications() {
                     </button>
                   </>
                 ) : (
-                  <span className={`px-4 py-2 rounded ${
-                    application.status === 'accepted' ? 'bg-green-100 text-green-800' :
-                    application.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                    'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {application.status === 'accepted' ? 'Acceptée' :
-                     application.status === 'rejected' ? 'Refusée' :
-                     'En attente'}
-                  </span>
+                  <div className="flex flex-col gap-2">
+                    <span className={`px-4 py-2 rounded ${
+                      application.status === 'accepted' ? 'bg-green-100 text-green-800' :
+                      application.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                      'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {application.status === 'accepted' ? 'Acceptée' :
+                       application.status === 'rejected' ? 'Refusée' :
+                       'En attente'}
+                    </span>
+                    {application.status === 'accepted' && (
+                      <button
+                        onClick={() => handleMessageClick(
+                          application.id,
+                          userType === 'employer' ? application.student.id : application.job.employer_id
+                        )}
+                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                      >
+                        Message
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             </div>

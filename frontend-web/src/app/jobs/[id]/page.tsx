@@ -312,6 +312,14 @@ export default function JobDetails({ params }: { params: Promise<{ id: string }>
                           {app.status === 'pending' ? 'En attente' :
                            app.status === 'accepted' ? 'Acceptée' : 'Refusée'}
                         </span>
+                        {app.status === 'accepted' && (
+                          <button
+                            onClick={() => router.push(`/messages?application=${app.id}&user=${app.student.id}`)}
+                            className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+                          >
+                            Message
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -361,6 +369,17 @@ export default function JobDetails({ params }: { params: Promise<{ id: string }>
                   ? "L'offre est actuellement ouverte aux candidatures" 
                   : "L'offre est actuellement fermée aux candidatures"}
               </p>
+            </div>
+          )}
+
+          {userProfile?.type === 'student' && application?.status === 'accepted' && (
+            <div className="mt-4">
+              <button
+                onClick={() => router.push(`/messages?application=${application.id}&user=${job.employer.id}`)}
+                className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors"
+              >
+                Contacter l'employeur
+              </button>
             </div>
           )}
         </div>

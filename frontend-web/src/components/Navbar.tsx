@@ -29,6 +29,18 @@ interface Notification {
   application?: Application;
 }
 
+interface Message {
+  id: string;
+  content: string;
+  created_at: string;
+  read: boolean;
+  sender_id: string;
+  sender: {
+    full_name: string;
+    avatar_url: string;
+  };
+}
+
 interface NavbarProps {
   user: any;
   userProfile: any;
@@ -39,6 +51,9 @@ export default function Navbar({ user, userProfile, handleSignOut }: NavbarProps
   const router = useRouter();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showMessages, setShowMessages] = useState(false);
+  const [recentMessages, setRecentMessages] = useState<Message[]>([]);
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   
   const { 
     notifications, 
@@ -46,6 +61,50 @@ export default function Navbar({ user, userProfile, handleSignOut }: NavbarProps
     markAsRead, 
     markAllAsRead 
   } = useNotifications(user?.id);
+
+  useEffect(() => {
+    const fetchMessages = async () => {
+      if (!user?.id) return;
+      
+      const { data } = await supabase
+        .from('messages')
+        .select(`
+          id,
+          content,
+          created_at,
+          read,
+          sender_id,
+          sender:profiles!sender_id (
+            full_name,
+            avatar_url
+          )
+        `)
+        .eq('receiver_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (data && data.length > 0) {
+        const formattedMessages = data.map(message => ({
+          id: message.id,
+          content: message.content,
+          created_at: message.created_at,
+          read: message.read,
+          sender_id: message.sender_id,
+          sender: {
+            full_name: message.sender?.full_name || '',
+            avatar_url: message.sender?.avatar_url || ''
+          }
+        }));
+        setRecentMessages(formattedMessages);
+        setUnreadMessagesCount(formattedMessages.filter(m => !m.read).length);
+      } else {
+        setRecentMessages([]);
+        setUnreadMessagesCount(0);
+      }
+    };
+
+    fetchMessages();
+  }, [user?.id]);
 
   return (
     <nav className="bg-white shadow-lg">
@@ -64,64 +123,125 @@ export default function Navbar({ user, userProfile, handleSignOut }: NavbarProps
           </div>
           <div className="flex items-center gap-4">
             {user && (
-              <div className="relative">
-                <button
-                  onClick={() => setShowNotifications(!showNotifications)}
-                  className="relative p-2 text-gray-600 hover:text-gray-900"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                  </svg>
-                  {unreadCount > 0 && (
-                    <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                      {unreadCount}
-                    </span>
-                  )}
-                </button>
+              <>
+                <div className="relative">
+                  <button
+                    onClick={() => setShowNotifications(!showNotifications)}
+                    className="relative p-2 text-gray-600 hover:text-gray-900"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                    {unreadCount > 0 && (
+                      <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                        {unreadCount}
+                      </span>
+                    )}
+                  </button>
 
-                {showNotifications && (
-                  <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg py-1 z-20 border border-gray-200">
-                    <div className="p-3 border-b border-gray-200 flex justify-between items-center">
-                      <h3 className="text-lg font-semibold">Notifications</h3>
-                      {unreadCount > 0 && (
+                  {showNotifications && (
+                    <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg py-1 z-20 border border-gray-200">
+                      <div className="p-3 border-b border-gray-200 flex justify-between items-center">
+                        <h3 className="text-lg font-semibold">Notifications</h3>
+                        {unreadCount > 0 && (
+                          <button
+                            onClick={() => markAllAsRead()}
+                            className="text-sm text-blue-600 hover:text-blue-800"
+                          >
+                            Tout marquer comme lu
+                          </button>
+                        )}
+                      </div>
+                      <div className="max-h-96 overflow-y-auto">
+                        {notifications.length === 0 ? (
+                          <p className="p-4 text-gray-500 text-center">Aucune notification</p>
+                        ) : (
+                          notifications.map(notification => (
+                            <div
+                              key={notification.id}
+                              className={`p-4 border-b hover:bg-gray-50 cursor-pointer ${
+                                !notification.read ? 'bg-blue-50' : ''
+                              }`}
+                              onClick={() => markAsRead(notification.id)}
+                            >
+                              <p className="text-sm text-gray-800">
+                                {notification.type === 'job_created' && `Nouvelle offre : ${notification.job?.title}`}
+                                {notification.type === 'application_received' && `Nouvelle candidature pour ${notification.job?.title}`}
+                                {notification.type === 'application_status_changed' && 
+                                  `Statut de candidature mis à jour : ${notification.application?.job?.title} - ${notification.application?.status}`
+                                }
+                                {notification.type === 'job_viewed' && `Votre offre ${notification.job?.title} a été vue`}
+                              </p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                {new Date(notification.created_at).toLocaleDateString()}
+                              </p>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="relative">
+                  <button
+                    onClick={() => setShowMessages(!showMessages)}
+                    className="relative p-2 text-gray-600 hover:text-gray-900"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-4l-4 4-4-4z" />
+                    </svg>
+                    {unreadMessagesCount > 0 && (
+                      <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                        {unreadMessagesCount}
+                      </span>
+                    )}
+                  </button>
+
+                  {showMessages && (
+                    <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg py-1 z-20 border border-gray-200">
+                      <div className="p-3 border-b border-gray-200 flex justify-between items-center">
+                        <h3 className="text-lg font-semibold">Messages</h3>
                         <button
-                          onClick={() => markAllAsRead()}
+                          onClick={() => router.push('/messages')}
                           className="text-sm text-blue-600 hover:text-blue-800"
                         >
-                          Tout marquer comme lu
+                          Voir tout
                         </button>
-                      )}
+                      </div>
+                      <div className="max-h-96 overflow-y-auto">
+                        {recentMessages.length === 0 ? (
+                          <p className="p-4 text-gray-500 text-center">Aucun message</p>
+                        ) : (
+                          recentMessages.map(message => (
+                            <div
+                              key={message.id}
+                              className={`p-4 border-b hover:bg-gray-50 cursor-pointer ${
+                                !message.read ? 'bg-blue-50' : ''
+                              }`}
+                              onClick={() => router.push(`/messages?user=${message.sender_id}`)}
+                            >
+                              <div className="flex items-center gap-3">
+                                <img
+                                  src={message.sender.avatar_url || '/default-avatar.png'}
+                                  alt="Avatar"
+                                  className="w-8 h-8 rounded-full"
+                                />
+                                <div>
+                                  <p className="font-medium text-sm">{message.sender.full_name}</p>
+                                  <p className="text-sm text-gray-600 truncate">{message.content}</p>
+                                </div>
+                              </div>
+                              <p className="text-xs text-gray-500 mt-1">
+                                {new Date(message.created_at).toLocaleDateString()}
+                              </p>
+                            </div>
+                          ))
+                        )}
+                      </div>
                     </div>
-                    <div className="max-h-96 overflow-y-auto">
-                      {notifications.length === 0 ? (
-                        <p className="p-4 text-gray-500 text-center">Aucune notification</p>
-                      ) : (
-                        notifications.map(notification => (
-                          <div
-                            key={notification.id}
-                            className={`p-4 border-b hover:bg-gray-50 cursor-pointer ${
-                              !notification.read ? 'bg-blue-50' : ''
-                            }`}
-                            onClick={() => markAsRead(notification.id)}
-                          >
-                            <p className="text-sm text-gray-800">
-                              {notification.type === 'job_created' && `Nouvelle offre : ${notification.job?.title}`}
-                              {notification.type === 'application_received' && `Nouvelle candidature pour ${notification.job?.title}`}
-                              {notification.type === 'application_status_changed' && 
-                                `Statut de candidature mis à jour : ${notification.application?.job?.title} - ${notification.application?.status}`
-                              }
-                              {notification.type === 'job_viewed' && `Votre offre ${notification.job?.title} a été vue`}
-                            </p>
-                            <p className="text-xs text-gray-500 mt-1">
-                              {new Date(notification.created_at).toLocaleDateString()}
-                            </p>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              </>
             )}
 
             {user ? (
@@ -194,4 +314,4 @@ export default function Navbar({ user, userProfile, handleSignOut }: NavbarProps
       </div>
     </nav>
   );
-} 
+}

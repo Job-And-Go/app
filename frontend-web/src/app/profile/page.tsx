@@ -18,6 +18,8 @@ export default function Profile() {
     cv_url: "",
     code_postal: "",
     localite: "",
+    is_private: true,
+    accept_dm: false
   });
 
   useEffect(() => {
@@ -45,6 +47,8 @@ export default function Profile() {
             cv_url: profile.cv_url || "",
             code_postal: profile.code_postal || "",
             localite: profile.localite || "",
+            is_private: profile.is_private ?? true,
+            accept_dm: profile.accept_dm ?? false
           });
         }
         setLoading(false);
@@ -58,11 +62,22 @@ export default function Profile() {
   }, [router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setUserProfile(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    const { name, type } = e.target;
+    const value = type === 'checkbox' ? (e.target as HTMLInputElement).checked : e.target.value;
+    
+    setUserProfile(prev => {
+      const newProfile = {
+        ...prev,
+        [name]: value
+      };
+
+      // Si on active le mode privé, désactiver les messages directs
+      if (name === 'is_private' && value === true) {
+        newProfile.accept_dm = false;
+      }
+
+      return newProfile;
+    });
   };
 
   const handleLocationSelect = (location: string) => {
@@ -104,10 +119,13 @@ export default function Profile() {
           cv_url: userProfile.cv_url,
           code_postal: userProfile.code_postal,
           localite: userProfile.localite,
+          is_private: userProfile.is_private,
+          accept_dm: userProfile.accept_dm,
           updated_at: new Date().toISOString(),
         }, { 
           onConflict: 'id'
         });
+
 
       if (error) {
         throw error;
@@ -199,6 +217,39 @@ export default function Profile() {
               />
             </div>
           )}
+
+          <div className="mb-6">
+            <div className="flex items-center gap-4">
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  name="is_private"
+                  checked={userProfile.is_private}
+                  onChange={handleChange}
+                  className="mr-2"
+                />
+                Profil privé
+              </label>
+
+              {!userProfile.is_private && (
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    name="accept_dm"
+                    checked={userProfile.accept_dm}
+                    onChange={handleChange}
+                    className="mr-2"
+                  />
+                  Accepter les messages directs
+                </label>
+              )}
+            </div>
+            <p className="text-sm text-gray-500 mt-1">
+              {userProfile.is_private 
+                ? "En mode privé, seules les personnes avec qui vous avez une candidature acceptée peuvent vous contacter"
+                : "En mode public, votre profil est visible par tous les utilisateurs"}
+            </p>
+          </div>
 
           <button
             type="submit"
