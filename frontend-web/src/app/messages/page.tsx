@@ -29,6 +29,7 @@ export default function MessagesPage() {
   const otherUserId = searchParams.get('user');
   
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
 
@@ -40,6 +41,15 @@ export default function MessagesPage() {
         return;
       }
       setCurrentUser(user);
+
+      // Récupérer le profil utilisateur
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      setUserProfile(profile);
       fetchConversations(user.id);
 
       // Si on a un otherUserId dans l'URL, on charge cette conversation
@@ -152,15 +162,17 @@ export default function MessagesPage() {
     }
   };
 
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push('/login');
+  };
+
   return (
     <>
       <Navbar 
         user={currentUser}
-        userProfile={currentUser}
-        handleSignOut={async () => {
-          await supabase.auth.signOut();
-          router.push('/login');
-        }}
+        userProfile={userProfile}
+        handleSignOut={handleSignOut}
       />
       <div className="flex h-[calc(100vh-64px)] bg-white">
         {/* Liste des conversations */}
