@@ -58,7 +58,7 @@ export default function MessageConversation({ currentUserId, otherUserId, applic
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSend()}
             placeholder="Écrivez votre message..."
-            className="flex-1 border rounded-lg px-4 py-2"
+            className="flex-1 border rounded-lg px-4 py-2 text-black"
           />
           <button
             onClick={handleSend}

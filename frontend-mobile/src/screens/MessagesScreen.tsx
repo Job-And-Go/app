@@ -1,11 +1,9 @@
-'use client';
-
-import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
-import { useRouter } from 'next/navigation';
-import MessageConversation from '@/components/MessageConversation';
-import Navbar from '@/components/Navbar';
+import React, { useState, useEffect } from 'react';
+import { View, Text, Image, TouchableOpacity, FlatList, StyleSheet } from 'react-native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { supabase } from '../lib/supabase';
+import MessageConversation from '../components/MessageConversation';
+import { NavigationProps, RootStackParamList, RouteParams } from '../types/navigation';
 
 interface Conversation {
   id: string;
@@ -22,12 +20,12 @@ interface Conversation {
   application_id?: string;
 }
 
-export default function MessagesPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const applicationId = searchParams?.get('application') ?? null;
-  const otherUserId = searchParams?.get('user') ?? null;
-  
+export default function MessagesScreen() {
+  const navigation = useNavigation<NavigationProps>();
+  const route = useRoute<RouteProp<{ params: RouteParams }, 'params'>>();
+  const applicationId = route.params?.applicationId;
+  const otherUserId = route.params?.userId;
+
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -37,12 +35,11 @@ export default function MessagesPage() {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        router.push('/login');
+        navigation.navigate('Login');
         return;
       }
       setCurrentUser(user);
 
-      // Récupérer le profil utilisateur
       const { data: profile } = await supabase
         .from('profiles')
         .select('*')
@@ -52,7 +49,6 @@ export default function MessagesPage() {
       setUserProfile(profile);
       fetchConversations(user.id);
 
-      // Si on a un otherUserId dans l'URL, on charge cette conversation
       if (otherUserId) {
         const { data: otherUser } = await supabase
           .from('profiles')
@@ -74,12 +70,11 @@ export default function MessagesPage() {
     };
 
     getUser();
-  }, [router, otherUserId, applicationId]);
+  }, [otherUserId, applicationId]);
 
   useEffect(() => {
     if (!currentUser) return;
 
-    // Abonnement aux nouveaux messages
     const subscription = supabase
       .channel('messages')
       .on('postgres_changes', {
@@ -114,7 +109,6 @@ export default function MessagesPage() {
       return;
     }
 
-    // Grouper et compter les messages non lus par conversation
     const conversationsMap = messages.reduce((acc: Record<string, Conversation>, message) => {
       const otherUser = message.sender_id === userId ? message.receiver : message.sender;
       const conversationId = otherUser.id;
@@ -132,12 +126,10 @@ export default function MessagesPage() {
         };
       }
 
-      // Incrémenter le compteur de messages non lus
       if (message.receiver_id === userId && !message.read) {
         acc[conversationId].unread_count++;
       }
 
-      // Mettre à jour le dernier message si plus récent
       if (new Date(message.created_at) > new Date(acc[conversationId].last_message.created_at)) {
         acc[conversationId].last_message = {
           content: message.content,
@@ -148,80 +140,105 @@ export default function MessagesPage() {
       return acc;
     }, {});
 
-    // Trier les conversations par date du dernier message
     const sortedConversations = Object.values(conversationsMap)
       .sort((a, b) => 
         new Date(b.last_message.created_at).getTime() - new Date(a.last_message.created_at).getTime()
       );
 
     setConversations(sortedConversations);
-    
-    // Si aucune conversation n'est sélectionnée, sélectionner la première par défaut
-    if (!selectedConversation && sortedConversations.length > 0) {
-      setSelectedConversation(sortedConversations[0]);
-    }
   };
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.push('/login');
-  };
+  const renderConversationItem = ({ item }: { item: Conversation }) => (
+    <TouchableOpacity
+      style={[
+        styles.conversationItem,
+        selectedConversation?.id === item.id && styles.selectedConversation
+      ]}
+      onPress={() => navigation.navigate('Chat', {
+        otherUserId: item.other_user.id,
+        applicationId: item.application_id
+      })}
+    >
+      <View style={styles.conversationContent}>
+        <Image
+          source={{ uri: item.other_user.avatar_url || 'https://default-avatar-url.com' }}
+          style={styles.avatar}
+        />
+        <View style={styles.messageInfo}>
+          <Text style={styles.userName}>{item.other_user.full_name}</Text>
+          <Text style={styles.lastMessage} numberOfLines={1}>
+            {item.last_message.content}
+          </Text>
+        </View>
+        {item.unread_count > 0 && (
+          <View style={styles.unreadBadge}>
+            <Text style={styles.unreadCount}>{item.unread_count}</Text>
+          </View>
+        )}
+      </View>
+    </TouchableOpacity>
+  );
 
   return (
-    <>
-      <Navbar 
-        user={currentUser}
-        userProfile={userProfile}
-        handleSignOut={handleSignOut}
+    <View style={styles.container}>
+      <FlatList
+        data={conversations}
+        renderItem={renderConversationItem}
+        keyExtractor={(item) => item.id}
+        style={styles.list}
       />
-      <div className="flex h-[calc(100vh-64px)] bg-white">
-        {/* Liste des conversations */}
-        <div className="w-1/3 border-r overflow-y-auto">
-          {conversations.map((conversation) => (
-            <div
-              key={conversation.id}
-              onClick={() => setSelectedConversation(conversation)}
-              className={`p-4 border-b hover:bg-[#f0fff2] cursor-pointer ${
-                selectedConversation?.id === conversation.id ? 'bg-[#e6ffe9]' : ''
-              }`}
-            >
-              <div className="flex items-center gap-4">
-                <img
-                  src={conversation.other_user.avatar_url || '/default-avatar.png'}
-                  alt="Avatar"
-                  className="w-12 h-12 rounded-full"
-                />
-                <div className="flex-1">
-                  <h3 className="font-semibold text-black">{conversation.other_user.full_name}</h3>
-                  <p className="text-sm text-black truncate">
-                    {conversation.last_message.content}
-                  </p>
-                </div>
-                {conversation.unread_count > 0 && (
-                  <span className="bg-[#3bee5e] text-white px-2 py-1 rounded-full text-xs">
-                    {conversation.unread_count}
-                  </span>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Zone de conversation active */}
-        <div className="w-2/3 bg-white">
-          {selectedConversation ? (
-            <MessageConversation
-              currentUserId={currentUser?.id}
-              otherUserId={selectedConversation.other_user.id}
-              applicationId={selectedConversation.application_id}
-            />
-          ) : (
-            <div className="flex items-center justify-center h-full text-black">
-              Sélectionnez une conversation
-            </div>
-          )}
-        </div>
-      </div>
-    </>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  list: {
+    flex: 1,
+  },
+  conversationItem: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e5e5',
+  },
+  selectedConversation: {
+    backgroundColor: '#e6ffe9',
+  },
+  conversationContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  avatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+  },
+  messageInfo: {
+    flex: 1,
+    marginLeft: 16,
+  },
+  userName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+  },
+  lastMessage: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 4,
+  },
+  unreadBadge: {
+    backgroundColor: '#3bee5e',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  unreadCount: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+}); 

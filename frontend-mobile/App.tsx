@@ -1,5 +1,7 @@
+import 'react-native-url-polyfill/auto';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Image, TextInput, TouchableOpacity, ScrollView } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import AppNavigator from './src/navigation/AppNavigator';
 //import { supabase } from '@/lib/supabase';
 
 export default function App() {
@@ -16,80 +18,14 @@ export default function App() {
   setNewView();*/
 
   return (
-    <View style={styles.container}>
-      <View style={styles.nav}>
-        <Image
-          source={require('./assets/favicon.png')} 
-          style={styles.logo}
-          resizeMode="contain"
-        />
-        <View style={styles.navButtons}>
-          <TouchableOpacity style={styles.loginButton}>
-            <Text style={styles.loginText}>Se connecter</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.registerButton}>
-            <Text style={styles.registerText}>S'inscrire</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <ScrollView style={styles.main} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Trouvez votre prochain emploi</Text>
-          <Text style={styles.titleAccent}>avec Job&Go</Text>
-          <Text style={styles.subtitle}>
-            La plateforme qui connecte les talents avec les meilleures opportunités professionnelles.
-          </Text>
-        </View>
-
-        <View style={styles.searchSection}>
-          <TextInput
-            style={styles.input}
-            placeholder="Poste, compétence ou entreprise"
-            placeholderTextColor="#9CA3AF"
-            autoCapitalize="none"
-          />
-          <TextInput 
-            style={styles.input}
-            placeholder="Ville ou région"
-            placeholderTextColor="#9CA3AF"
-            autoCapitalize="none"
-          />
-          <TouchableOpacity 
-            style={styles.searchButton}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.searchButtonText}>Rechercher</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.features}>
-          <View style={styles.featureCard}>
-            <Text style={styles.featureEmoji}>✨</Text>
-            <Text style={styles.featureTitle}>Offres Pertinentes</Text>
-            <Text style={styles.featureText}>Des opportunités professionnelles adaptées à votre profil et vos aspirations.</Text>
-          </View>
-
-          <View style={styles.featureCard}>
-            <Text style={styles.featureEmoji}>🔍</Text>
-            <Text style={styles.featureTitle}>Recherche Simplifiée</Text>
-            <Text style={styles.featureText}>Une interface intuitive pour trouver rapidement les offres qui vous correspondent.</Text>
-          </View>
-
-          <View style={styles.featureCard}>
-            <Text style={styles.featureEmoji}>🚀</Text>
-            <Text style={styles.featureTitle}>Carrière Accélérée</Text>
-            <Text style={styles.featureText}>Des outils et conseils pour booster votre parcours professionnel.</Text>
-          </View>
-        </View>
-      </ScrollView>
-
-      <StatusBar style="light" />
-    </View>
+    <SafeAreaProvider>
+      <StatusBar style="auto" />
+      <AppNavigator />
+    </SafeAreaProvider>
   );
 }
 
-const styles = StyleSheet.create({
+const styles = {
   container: {
     flex: 1,
     backgroundColor: '#2C2C2C',
@@ -220,4 +156,4 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
   },
-});
+};

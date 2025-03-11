@@ -107,7 +107,7 @@ export default function Navbar({ user, userProfile, handleSignOut }: NavbarProps
   }, [user?.id]);
 
   return (
-    <nav className="bg-white shadow-lg">
+    <nav className="bg-white shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
@@ -277,6 +277,14 @@ export default function Navbar({ user, userProfile, handleSignOut }: NavbarProps
                           Mes Favoris
                         </a>
                       </>
+                    )}
+                    {userProfile?.type === 'employer' && userProfile?.is_integration_admin && (
+                      <a
+                        href="/integration"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        Intégration
+                      </a>
                     )}
                     <a
                       href={user.email ? "/settings" : "/login"}

@@ -34,7 +34,7 @@ export function useMessages(userId: string, otherId?: string) {
         sender:profiles!sender_id(full_name, avatar_url)
       `)
       .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: true });
 
     if (otherId) {
       query = query.or(`sender_id.eq.${otherId},receiver_id.eq.${otherId}`);

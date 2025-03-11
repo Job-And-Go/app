@@ -3,6 +3,7 @@
 import { supabase } from "@/lib/supabase";
 import { useState } from "react";
 import { useRouter } from 'next/navigation';
+import { IntegrationProvider, INTEGRATION_CONFIGS, getProviderConfig } from '@/config/integration';
 
 const FORM_STYLES = {
   container: "min-h-screen bg-gradient-to-b from-green-400 to-white flex items-center justify-center",
@@ -15,19 +16,32 @@ const FORM_STYLES = {
   link: "ml-1 text-green-400 hover:text-green-500",
   typeSelector: "flex gap-4 mb-6",
   typeButton: "flex-1 p-4 rounded-lg border-2 border-gray-200 hover:border-green-400 transition-all cursor-pointer",
-  typeButtonActive: "flex-1 p-4 rounded-lg border-2 border-green-400 bg-green-50 transition-all cursor-pointer"
+  typeButtonActive: "flex-1 p-4 rounded-lg border-2 border-green-400 bg-green-50 transition-all cursor-pointer",
+  ssoButton: "w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors mb-2",
+  otherMethodsButton: "w-full bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600 transition-colors mt-4"
 };
+
+interface FormData {
+  email: string;
+  password: string;
+  confirmPassword: string;
+  full_name: string;
+  type: string;
+  is_integration_admin: boolean;
+}
 
 export default function Login() {
   const router = useRouter();
   const [isLogin, setIsLogin] = useState(true);
   const [userType, setUserType] = useState<'student' | 'employer' | null>(null);
-  const [formData, setFormData] = useState({
+  const [showOtherMethods, setShowOtherMethods] = useState(false);
+  const [formData, setFormData] = useState<FormData>({
     email: "",
     password: "",
     confirmPassword: "",
     full_name: "",
-    type: ""
+    type: "",
+    is_integration_admin: false
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -75,6 +89,7 @@ export default function Login() {
             id: authData.user.id,
             full_name: formData.full_name,
             type: userType,
+            is_integration_admin: userType === 'employer' ? formData.is_integration_admin : false,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           });
@@ -105,6 +120,41 @@ export default function Login() {
     }
   };
 
+  const handleSSOLogin = async (integrationProvider: IntegrationProvider) => {
+    try {
+      console.log('Début de la connexion SSO pour:', integrationProvider);
+      const config = getProviderConfig(integrationProvider);
+      console.log('Configuration chargée:', {
+        ...config,
+        provider: config.provider,
+        type: config.type
+      });
+
+      const { data: ssoData, error: ssoError } = await supabase.auth.signInWithOAuth({
+        provider: config.provider,
+        options: {
+          scopes: config.scopes.join(' '),
+          redirectTo: `${window.location.origin}${config.authEndpoint}`,
+          queryParams: {
+            integration_type: config.type,
+            ...(config.clientId && { client_id: config.clientId })
+          }
+        }
+      });
+      
+      console.log('Résultat de la connexion:', { ssoData, error: ssoError });
+      
+      if (ssoError) throw ssoError;
+      router.push('/');
+    } catch (error: any) {
+      console.error("Erreur détaillée d'authentification SSO:", {
+        message: error.message,
+        provider: integrationProvider,
+        stack: error.stack
+      });
+    }
+  };
+
   const formFields = [
     { id: 'email', label: 'Email', type: 'email' },
     { id: 'password', label: 'Mot de passe', type: 'password' },
@@ -121,80 +171,132 @@ export default function Login() {
           {isLogin ? "Connexion" : "Inscription"}
         </h2>
         
-        {!isLogin && (
-          <div className={FORM_STYLES.typeSelector}>
-            <div 
-              className={userType === 'student' ? FORM_STYLES.typeButtonActive : FORM_STYLES.typeButton}
-              onClick={() => setUserType('student')}
-            >
-              <h3 className="text-lg font-semibold text-center">Étudiant</h3>
-              <p className="text-sm text-gray-600 text-center mt-2">Je cherche un job étudiant</p>
-            </div>
-            <div 
-              className={userType === 'employer' ? FORM_STYLES.typeButtonActive : FORM_STYLES.typeButton}
-              onClick={() => setUserType('employer')}
-            >
-              <h3 className="text-lg font-semibold text-center">Employeur</h3>
-              <p className="text-sm text-gray-600 text-center mt-2">Je propose des jobs</p>
-            </div>
-          </div>
-        )}
-        
-        <form onSubmit={handleAuth} className={FORM_STYLES.formGroup}>
-          {formFields.map(({ id, label, type }) => (
-            <div key={id}>
-              <label htmlFor={id} className={FORM_STYLES.label}>
-                {label}
-              </label>
-              {type === 'textarea' ? (
-                <textarea
-                  id={id}
-                  name={id}
-                  value={formData[id as keyof typeof formData]}
-                  onChange={handleChange}
-                  className={FORM_STYLES.input}
-                  required
-                />
-              ) : (
-                <input
-                  type={type}
-                  id={id}
-                  name={id}
-                  value={formData[id as keyof typeof formData]}
-                  onChange={handleChange}
-                  className={FORM_STYLES.input}
-                  required
-                />
+        {!showOtherMethods ? (
+          <>
+            {!isLogin && (
+              <div className={FORM_STYLES.typeSelector}>
+                <div 
+                  className={userType === 'student' ? FORM_STYLES.typeButtonActive : FORM_STYLES.typeButton}
+                  onClick={() => setUserType('student')}
+                >
+                  <h3 className="text-lg font-semibold text-center">Étudiant</h3>
+                  <p className="text-sm text-gray-600 text-center mt-2">Je cherche un job étudiant</p>
+                </div>
+                <div 
+                  className={userType === 'employer' ? FORM_STYLES.typeButtonActive : FORM_STYLES.typeButton}
+                  onClick={() => setUserType('employer')}
+                >
+                  <h3 className="text-lg font-semibold text-center">Employeur</h3>
+                  <p className="text-sm text-gray-600 text-center mt-2">Je propose des jobs</p>
+                </div>
+              </div>
+            )}
+            
+            <form onSubmit={handleAuth} className={FORM_STYLES.formGroup}>
+              {formFields.map(({ id, label, type }) => (
+                <div key={id}>
+                  <label htmlFor={id} className={FORM_STYLES.label}>
+                    {label}
+                  </label>
+                  {type === 'textarea' ? (
+                    <textarea
+                      id={id}
+                      name={id}
+                      value={formData[id as keyof FormData].toString()}
+                      onChange={handleChange}
+                      className={FORM_STYLES.input}
+                      required
+                    />
+                  ) : (
+                    <input
+                      type={type}
+                      id={id}
+                      name={id}
+                      value={formData[id as keyof FormData].toString()}
+                      onChange={handleChange}
+                      className={FORM_STYLES.input}
+                      required
+                    />
+                  )}
+                </div>
+              ))}
+
+              {!isLogin && userType === 'employer' && (
+                <div className="mt-4">
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      name="is_integration_admin"
+                      checked={formData.is_integration_admin}
+                      onChange={(e) => setFormData(prev => ({ ...prev, is_integration_admin: e.target.checked }))}
+                      className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                    />
+                    <span className="text-sm text-gray-700">Activer le mode admin ?</span>
+                  </label>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Le mode admin vous permettra d'intégrer l'application sur vos différentes plateformes (site web, intranet, applications mobiles, etc.). 
+                    <a href="/admin_mode_information" className="text-green-500 hover:text-green-600">En savoir plus sur le mode admin</a>
+                  </p>
+                </div>
               )}
-            </div>
-          ))}
 
-          <button type="submit" className={FORM_STYLES.button}>
-            {isLogin ? "Se connecter" : "S'inscrire"}
-          </button>
+              <button type="submit" className={FORM_STYLES.button}>
+                {isLogin ? "Se connecter" : "S'inscrire"}
+              </button>
 
-          <button
-            type="button"
-            onClick={handleGuestLogin}
-            className={FORM_STYLES.button}
-          >
-            Continuer en tant qu'invité
-          </button>
+              <p className="text-center text-sm text-gray-900">
+                {isLogin ? "Pas encore de compte ?" : "Déjà un compte ?"}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsLogin(!isLogin);
+                    setUserType(null);
+                  }}
+                  className={FORM_STYLES.link}
+                >
+                  {isLogin ? "S'inscrire" : "Se connecter"}
+                </button>
+              </p>
+            </form>
 
-          <p className="text-center text-sm text-gray-900">
-            {isLogin ? "Pas encore de compte ?" : "Déjà un compte ?"}
             <button
               type="button"
-              onClick={() => {
-                setIsLogin(!isLogin);
-                setUserType(null);
-              }}
-              className={FORM_STYLES.link}
+              onClick={() => setShowOtherMethods(true)}
+              className={FORM_STYLES.otherMethodsButton}
             >
-              {isLogin ? "S'inscrire" : "Se connecter"}
+              Autres méthodes de connexion
             </button>
-          </p>
-        </form>
+          </>
+        ) : (
+          <div className="space-y-4">
+            <button
+              type="button"
+              onClick={handleGuestLogin}
+              className={FORM_STYLES.button}
+            >
+              Continuer en tant qu'invité
+            </button>
+
+            {Object.entries(INTEGRATION_CONFIGS).map(([key, config]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => handleSSOLogin(key as IntegrationProvider)}
+                className={FORM_STYLES.ssoButton}
+              >
+                Se connecter avec {config.name}
+              </button>
+            ))}
+
+            <button
+              type="button"
+              onClick={() => setShowOtherMethods(false)}
+              className={FORM_STYLES.otherMethodsButton}
+            >
+              Retour à la connexion classique
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
