@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
@@ -14,7 +16,7 @@ interface IntegrationDetails {
 export default function IntegrationSuccess() {
   const searchParams = useSearchParams();
   const [details, setDetails] = useState<IntegrationDetails | null>(null);
-  const platformId = searchParams.get('id');
+  const platformId = searchParams?.get('id');
 
   useEffect(() => {
     if (platformId) {
@@ -37,7 +39,15 @@ export default function IntegrationSuccess() {
     }
   };
 
-  if (!details) return <div>Chargement...</div>;
+  if (!details) {
+    return (
+      <Layout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-green-500"></div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -54,14 +64,14 @@ export default function IntegrationSuccess() {
           </div>
 
           <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-            <h2 className="text-xl font-semibold mb-4">Prochaines étapes</h2>
+            <h2 className="text-xl font-semibold mb-4 text-black">Prochaines étapes</h2>
             <ol className="space-y-4">
               <li className="flex items-start">
                 <span className="flex-shrink-0 w-8 h-8 bg-green-100 text-green-500 rounded-full flex items-center justify-center mr-3">
                   1
                 </span>
                 <div>
-                  <h3 className="font-medium">Vérifiez votre email</h3>
+                  <h3 className="font-medium text-black">Vérifiez votre email</h3>
                   <p className="text-gray-600">
                     Nous vous avons envoyé un email avec vos identifiants d'accès
                     au tableau de bord d'administration.
@@ -73,7 +83,7 @@ export default function IntegrationSuccess() {
                   2
                 </span>
                 <div>
-                  <h3 className="font-medium">Configurez l'intégration</h3>
+                  <h3 className="font-medium text-black">Configurez l'intégration</h3>
                   <p className="text-gray-600">
                     Suivez notre guide d'installation pas à pas pour configurer
                     l'intégration sur votre plateforme.
@@ -85,7 +95,7 @@ export default function IntegrationSuccess() {
                   3
                 </span>
                 <div>
-                  <h3 className="font-medium">Testez l'intégration</h3>
+                  <h3 className="font-medium text-black">Testez l'intégration</h3>
                   <p className="text-gray-600">
                     Utilisez notre environnement de test pour vérifier que tout
                     fonctionne correctement.
@@ -96,7 +106,7 @@ export default function IntegrationSuccess() {
           </div>
 
           <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-semibold mb-4">Informations importantes</h2>
+            <h2 className="text-xl font-semibold mb-4 text-black">Informations importantes</h2>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">
@@ -136,4 +146,4 @@ export default function IntegrationSuccess() {
       </div>
     </Layout>
   );
-} 
+}

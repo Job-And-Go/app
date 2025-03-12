@@ -82,18 +82,70 @@ export default function IntegrationPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('/api/v1/integration/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Non autorisé');
+
+      // Générer une clé API unique en utilisant crypto.getRandomValues
+      const array = new Uint8Array(32);
+      window.crypto.getRandomValues(array);
+      const apiKey = Array.from(array)
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+
+      // Générer le hash
+      const keyHash = await crypto.subtle.digest(
+        'SHA-256',
+        new TextEncoder().encode(apiKey)
+      ).then(hash => {
+        return Array.from(new Uint8Array(hash))
+          .map(b => b.toString(16).padStart(2, '0'))
+          .join('');
       });
 
-      if (!response.ok) throw new Error('Erreur lors de l\'inscription');
+      // Configuration par défaut selon le type de plateforme
+      const defaultConfig = {
+        sso_enabled: true,
+        webhook_enabled: false,
+        allowed_origins: [],
+        rate_limit: 1000,
+        features: {
+          jobs: true,
+          applications: true,
+          messaging: true
+        }
+      };
 
-      const data = await response.json();
-      router.push(`/integration/success?id=${data.platform_id}`);
+      const { data: platform, error } = await supabase
+        .from('platform_integrations')
+        .insert({
+          type: formData.platform_type,
+          url: formData.platform_url,
+          name: formData.platform_name,
+          contact_email: formData.contact_email,
+          api_key_hash: keyHash,
+          status: 'pending',
+          configuration: defaultConfig,
+          admin_id: user.id
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Stocker temporairement la clé API pour l'afficher sur la page de succès
+      sessionStorage.setItem('temp_api_key', apiKey);
+      
+      router.push(`/integration/success?id=${platform.id}`);
     } catch (error) {
-      console.error('Erreur:', error);
+      if (error instanceof Error) {
+        console.error('Erreur détaillée:', {
+          message: error.message,
+          formData: formData,
+          stack: error.stack
+        });
+      } else {
+        console.error('Erreur inconnue:', error);
+      }
     }
   };
 
@@ -145,7 +197,7 @@ export default function IntegrationPage() {
 
             {step === 1 && (
               <div className="max-w-2xl mx-auto">
-                <h3 className="text-xl font-semibold mb-6">
+                <h3 className="text-xl font-semibold mb-6 text-black">
                   Choisissez votre plateforme
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
@@ -163,7 +215,7 @@ export default function IntegrationPage() {
                       }`}
                     >
                       <div className="text-3xl mb-2">{platform.icon}</div>
-                      <h4 className="font-semibold">{platform.name}</h4>
+                      <h4 className="font-semibold text-black">{platform.name}</h4>
                       <p className="text-sm text-black">{platform.description}</p>
                     </button>
                   ))}
@@ -173,7 +225,7 @@ export default function IntegrationPage() {
 
             {step === 2 && (
               <form onSubmit={handleSubmit} className="max-w-2xl mx-auto space-y-6">
-                <h3 className="text-xl font-semibold mb-6">
+                <h3 className="text-xl font-semibold mb-6 text-black">
                   Informations de l'établissement
                 </h3>
                 
@@ -186,7 +238,7 @@ export default function IntegrationPage() {
                     required
                     value={formData.platform_name}
                     onChange={(e) => setFormData({ ...formData, platform_name: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-black"
                   />
                 </div>
 
@@ -199,7 +251,7 @@ export default function IntegrationPage() {
                     required
                     value={formData.platform_url}
                     onChange={(e) => setFormData({ ...formData, platform_url: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-black"
                     placeholder="https://moodle.votreecole.be"
                   />
                 </div>
@@ -214,7 +266,7 @@ export default function IntegrationPage() {
                       required
                       value={formData.contact_name}
                       onChange={(e) => setFormData({ ...formData, contact_name: e.target.value })}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-black"
                     />
                   </div>
                   <div>
@@ -226,7 +278,7 @@ export default function IntegrationPage() {
                       required
                       value={formData.contact_email}
                       onChange={(e) => setFormData({ ...formData, contact_email: e.target.value })}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-black"
                     />
                   </div>
                 </div>
@@ -238,7 +290,7 @@ export default function IntegrationPage() {
                   <select
                     value={formData.institution_size}
                     onChange={(e) => setFormData({ ...formData, institution_size: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-black"
                   >
                     <option value="">Sélectionnez une option</option>
                     <option value="small">Moins de 1000 étudiants</option>
@@ -269,21 +321,21 @@ export default function IntegrationPage() {
           <div className="mt-16 grid grid-cols-3 gap-8">
             <div className="text-center">
               <div className="text-4xl mb-4">⚡️</div>
-              <h3 className="font-semibold mb-2">Installation rapide</h3>
+              <h3 className="font-semibold mb-2 text-black">Installation rapide</h3>
               <p className="text-black">
                 Intégration en quelques minutes avec une configuration automatisée
               </p>
             </div>
             <div className="text-center">
               <div className="text-4xl mb-4">🔒</div>
-              <h3 className="font-semibold mb-2">Sécurisé</h3>
+              <h3 className="font-semibold mb-2 text-black">Sécurisé</h3>
               <p className="text-black">
                 Authentification SSO et chiffrement des données
               </p>
             </div>
             <div className="text-center">
               <div className="text-4xl mb-4">📊</div>
-              <h3 className="font-semibold mb-2">Analytics</h3>
+              <h3 className="font-semibold mb-2 text-black">Analytics</h3>
               <p className="text-black">
                 Suivez l'engagement des étudiants et les performances
               </p>
