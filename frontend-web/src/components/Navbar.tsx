@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useNotifications } from '@/hooks/useNotifications';
+import { formatName } from '@/utils/nameFormatter';
 
 interface Job {
   title: string;
@@ -257,7 +258,11 @@ export default function Navbar({ user, userProfile, handleSignOut }: NavbarProps
                       className="w-6 h-6 rounded-full object-cover"
                     />
                   )}
-                  {user.email ? (userProfile?.full_name || user.email.split('@')[0]) : 'Invité'}
+                  {user.email ? (
+                    userProfile?.first_name && userProfile?.last_name 
+                      ? formatName(userProfile.first_name, userProfile.last_name)
+                      : user.email.split('@')[0]
+                  ) : 'Invité'}
                 </button>
                 
                 {showProfileMenu && (

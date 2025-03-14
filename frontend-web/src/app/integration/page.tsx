@@ -47,7 +47,7 @@ export default function IntegrationPage() {
   });
 
   useEffect(() => {
-    const checkAdminAccess = async () => {
+    const checkAccess = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         
@@ -58,13 +58,14 @@ export default function IntegrationPage() {
 
         const { data: profile, error } = await supabase
           .from('profiles')
-          .select('is_integration_admin')
+          .select('is_integration_admin, type')
           .eq('id', user.id)
           .single();
 
         if (error) throw error;
 
-        if (!profile?.is_integration_admin) {
+        // Vérifier si l'utilisateur est admin d'intégration ou un établissement
+        if (!profile?.is_integration_admin && profile?.type !== 'etablissement') {
           router.push('/');
           return;
         }
@@ -76,7 +77,7 @@ export default function IntegrationPage() {
       }
     };
 
-    checkAdminAccess();
+    checkAccess();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {

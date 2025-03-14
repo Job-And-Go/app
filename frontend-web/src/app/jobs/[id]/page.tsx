@@ -105,7 +105,7 @@ export default function JobDetails({ params }: { params: Promise<{ id: string }>
           if (applicationData) {
             setApplication(applicationData);
           }
-        } else if (profileData?.type === 'employer') {
+        } else if (profileData?.type === 'particulier' || profileData?.type === 'professionnel') {
           const { data: applicationsData } = await supabase
             .from('applications')
             .select(`
@@ -276,7 +276,7 @@ export default function JobDetails({ params }: { params: Promise<{ id: string }>
             )}
           </div>
 
-          {userProfile?.type === 'employer' ? (
+          {userProfile?.type === 'particulier' || userProfile?.type === 'professionnel' ? (
             <div className="mt-6">
               <h2 className="text-xl font-semibold mb-4 text-black">Candidatures ({applications.length})</h2>
               <div className="space-y-4">
@@ -349,7 +349,7 @@ export default function JobDetails({ params }: { params: Promise<{ id: string }>
             </div>
           )}
 
-          {userProfile?.type === 'employer' && userProfile.id === job.employer.id && (
+          {(userProfile?.type === 'particulier' || userProfile?.type === 'professionnel') && userProfile.id === job.employer.id && (
             <div className="mt-4 border-t pt-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-black">Statut de l'offre</h3>

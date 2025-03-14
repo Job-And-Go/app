@@ -67,8 +67,8 @@ export default function Jobs() {
         .eq('id', user.id)
         .single();
 
-      // Si c'est un employeur, montrer uniquement ses annonces
-      if (profile?.type === 'employer') {
+      // Si c'est un particulier ou un professionnel, montrer uniquement ses annonces
+      if (profile?.type === 'particulier' || profile?.type === 'professionnel') {
         setIsEmployer(true);
         query = query.eq('employer_id', user.id);
       }
@@ -143,7 +143,7 @@ export default function Jobs() {
 
       <div className="max-w-7xl mx-auto p-6 mt-20">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">{isEmployer ? "Mes offres d'emploi" : "Offres d'emploi"}</h1>
+          <h1 className="text-2xl font-bold">{isEmployer ? "Mes offres publiées" : "Offres d'emploi"}</h1>
           {isEmployer && (
             <button
               onClick={() => router.push('/jobs/create')}

@@ -1,6 +1,7 @@
 // src/components/MessageSystem.tsx
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { formatName } from '@/utils/nameFormatter';
 
 interface Message {
   id: string;
@@ -9,16 +10,23 @@ interface Message {
   content: string;
   created_at: string;
   sender: {
-    full_name: string;
+    first_name: string;
+    last_name: string;
     avatar_url: string;
   };
+}
+
+interface MessageSystemProps {
+  currentUserId: string;
+  otherUserId: string;
+  applicationId?: string | null;
 }
 
 export default function MessageSystem({ 
   currentUserId, 
   otherUserId,
   applicationId = null 
-}) {
+}: MessageSystemProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [canMessage, setCanMessage] = useState(false);
@@ -56,12 +64,21 @@ export default function MessageSystem({
       .from('messages')
       .select(`
         *,
-        sender:profiles!sender_id(full_name, avatar_url)
+        sender:profiles!sender_id(first_name, last_name, avatar_url)
       `)
       .or(`sender_id.eq.${currentUserId},receiver_id.eq.${currentUserId}`)
       .order('created_at', { ascending: true });
 
-    if (data) setMessages(data);
+    if (data) {
+      const formattedMessages = data.map(message => ({
+        ...message,
+        sender: {
+          ...message.sender,
+          full_name: formatName(message.sender.first_name, message.sender.last_name)
+        }
+      }));
+      setMessages(formattedMessages);
+    }
   };
 
   const sendMessage = async () => {
@@ -80,6 +97,29 @@ export default function MessageSystem({
     if (!error) {
       setNewMessage('');
     }
+  };
+
+  const subscribeToMessages = () => {
+    const subscription = supabase
+      .channel('messages')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `sender_id=eq.${otherUserId},receiver_id=eq.${currentUserId}`
+        },
+        (payload) => {
+          const newMessage = payload.new as Message;
+          setMessages(prev => [...prev, newMessage]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   };
 
   // ... reste du composant pour l'affichage des messages

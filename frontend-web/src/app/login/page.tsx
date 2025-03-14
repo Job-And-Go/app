@@ -9,18 +9,30 @@ import { USER_TYPES } from '@/constants/userTypes';
 
 const FORM_STYLES = {
   container: "min-h-screen bg-gradient-to-b from-green-400 to-white flex items-center justify-center",
-  card: "bg-white p-8 rounded-lg shadow-xl w-96",
-  title: "text-2xl font-bold mb-6 text-center text-gray-900",
+  card: "bg-white p-8 rounded-lg shadow-xl w-[500px]",
+  title: "text-2xl font-bold mb-6 text-center text-black",
   formGroup: "space-y-4",
-  label: "block text-sm font-medium text-gray-900",
+  label: "block text-sm font-medium text-black",
   input: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 text-black",
   button: "w-full bg-green-400 text-white py-2 px-4 rounded-md hover:bg-green-500 transition-colors",
   link: "ml-1 text-green-400 hover:text-green-500",
-  typeSelector: "flex gap-4 mb-6",
-  typeButton: "flex-1 p-4 rounded-lg border-2 border-gray-200 hover:border-green-400 transition-all cursor-pointer",
-  typeButtonActive: "flex-1 p-4 rounded-lg border-2 border-green-400 bg-green-50 transition-all cursor-pointer",
+  typeSelector: "grid grid-cols-2 gap-4 mb-6",
+  typeButton: "p-4 rounded-lg border-2 border-gray-200 hover:border-green-400 transition-all cursor-pointer text-center",
+  typeButtonActive: "p-4 rounded-lg border-2 border-green-400 bg-green-50 transition-all cursor-pointer text-center",
+  progressBar: "w-full h-2 bg-gray-200 rounded-full mb-6",
+  progressStep: "h-full bg-green-400 rounded-full transition-all duration-300",
+  stepTitle: "text-lg font-semibold mb-4 text-black",
+  stepDescription: "text-sm text-gray-600 mb-6",
+  backButton: "text-gray-600 hover:text-gray-800 flex items-center gap-2 mb-4",
   ssoButton: "w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors mb-2",
-  otherMethodsButton: "w-full bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600 transition-colors mt-4"
+  otherMethodsButton: "w-full bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600 transition-colors mt-4",
+  featureList: "space-y-3 my-6",
+  featureItem: "flex items-start space-x-3",
+  featureIcon: "flex-shrink-0 h-5 w-5 text-green-500",
+  featureText: "text-sm text-gray-600",
+  infoCard: "bg-gray-50 p-4 rounded-lg mb-6",
+  infoTitle: "font-medium text-gray-900 mb-2",
+  infoText: "text-sm text-gray-600"
 };
 
 interface FormData {
@@ -60,24 +72,19 @@ export default function Login() {
     email: "",
     password: "",
     confirmPassword: "",
-    // Champs communs
     full_name: "",
     phone: "",
-    // Champs étudiant
     first_name: "",
     last_name: "",
     educational_institution: "",
     level: "",
-    // Champs professionnel
     company_name: "",
     contact_name: "",
     tax_number: "",
     sector: "",
-    // Champs établissement
     contact_person_name: "",
     contact_person_email: "",
     contact_person_phone: "",
-    // Champs particulier
     contact_preference: "",
     address_street: "",
     address_city: "",
@@ -87,6 +94,9 @@ export default function Login() {
     is_integration_admin: false
   });
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const MAX_RETRIES = 5;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -95,50 +105,99 @@ export default function Login() {
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
+    setError(null);
     
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
-          email: formData.email,
-          password: formData.password,
-        });
-        if (error) throw error;
-        router.push('/');
+        while (retryCount < MAX_RETRIES) {
+          const { error } = await supabase.auth.signInWithPassword({
+            email: formData.email,
+            password: formData.password,
+          });
+          
+          if (!error) {
+            router.push('/');
+            break;
+          }
+
+          if (error.message.includes("rate limit") || error.message.includes("Too many requests")) {
+            const waitTime = Math.pow(2, retryCount + 1) * 1000; // Backoff exponentiel: 2s, 4s, 8s, 16s, 32s
+            setError(`Trop de tentatives. Nouvelle tentative dans ${waitTime/1000} secondes...`);
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+            setRetryCount(prev => prev + 1);
+            continue;
+          }
+
+          throw error;
+        }
+
+        if (retryCount >= MAX_RETRIES) {
+          throw new Error("Trop de tentatives. Veuillez réessayer dans quelques minutes.");
+        }
       } else {
         if (!userType) {
           throw new Error('Veuillez sélectionner un type de compte');
         }
 
-        // Validation des champs spécifiques selon le type
         const validationErrors = validateFormByUserType(formData, userType);
         if (validationErrors.length > 0) {
           throw new Error(validationErrors.join('\n'));
         }
 
-        // Inscription de l'utilisateur
-        const { data: authData, error: signUpError } = await supabase.auth.signUp({
-          email: formData.email,
-          password: formData.password,
-        });
+        while (retryCount < MAX_RETRIES) {
+          const { data: authData, error: signUpError } = await supabase.auth.signUp({
+            email: formData.email,
+            password: formData.password,
+          });
 
-        if (signUpError) throw signUpError;
-        if (!authData.user) throw new Error('Erreur lors de la création du compte');
+          if (!signUpError && authData.user) {
+            const profileData = buildProfileData(formData, userType, authData.user.id);
+            const { error: profileError } = await supabase
+              .from('profiles')
+              .insert(profileData);
 
-        // Création du profil avec les champs spécifiques au type
-        const profileData = buildProfileData(formData, userType, authData.user.id);
+            if (!profileError) {
+              setIsLogin(true);
+              resetForm();
+              break;
+            }
 
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert(profileData);
+            if (profileError.message.includes("rate limit") || profileError.message.includes("Too many requests")) {
+              const waitTime = Math.pow(2, retryCount + 1) * 1000;
+              setError(`Trop de tentatives. Nouvelle tentative dans ${waitTime/1000} secondes...`);
+              await new Promise(resolve => setTimeout(resolve, waitTime));
+              setRetryCount(prev => prev + 1);
+              continue;
+            }
 
-        if (profileError) throw profileError;
-        
-        setIsLogin(true);
-        resetForm();
+            throw profileError;
+          }
+
+          if (signUpError) {
+            if (signUpError.message.includes("rate limit") || signUpError.message.includes("Too many requests")) {
+              const waitTime = Math.pow(2, retryCount + 1) * 1000;
+              setError(`Trop de tentatives. Nouvelle tentative dans ${waitTime/1000} secondes...`);
+              await new Promise(resolve => setTimeout(resolve, waitTime));
+              setRetryCount(prev => prev + 1);
+              continue;
+            }
+            throw signUpError;
+          }
+        }
+
+        if (retryCount >= MAX_RETRIES) {
+          throw new Error("Trop de tentatives. Veuillez réessayer dans quelques minutes.");
+        }
       }
     } catch (error: any) {
       console.error("Erreur:", error.message);
       setError(error.message);
+    } finally {
+      setIsLoading(false);
+      if (!error) {
+        setRetryCount(0);
+      }
     }
   };
 
@@ -154,14 +213,7 @@ export default function Login() {
 
   const handleSSOLogin = async (integrationProvider: IntegrationProvider) => {
     try {
-      console.log('Début de la connexion SSO pour:', integrationProvider);
       const config = getProviderConfig(integrationProvider);
-      console.log('Configuration chargée:', {
-        ...config,
-        provider: config.provider,
-        type: config.type
-      });
-
       const { data: ssoData, error: ssoError } = await supabase.auth.signInWithOAuth({
         provider: config.provider,
         options: {
@@ -174,38 +226,142 @@ export default function Login() {
         }
       });
       
-      console.log('Résultat de la connexion:', { ssoData, error: ssoError });
-      
       if (ssoError) throw ssoError;
       router.push('/');
     } catch (error: any) {
-      console.error("Erreur détaillée d'authentification SSO:", {
-        message: error.message,
-        provider: integrationProvider,
-        stack: error.stack
-      });
+      console.error("Erreur d'authentification SSO:", error.message);
     }
   };
 
+  const getProgress = () => {
+    if (step === 1) return 25;
+    if (step === 2) return 50;
+    if (step === 3) return 75;
+    return 100;
+  };
+
+  const renderAccountTypeInfo = () => {
+    const typeInfo = {
+      student: {
+        title: "Compte Étudiant",
+        description: "Un compte adapté aux étudiants en recherche d'opportunités",
+        features: [
+          "Créez et personnalisez votre CV en ligne",
+          "Postulez aux offres de stage et d'emploi",
+          "Suivez vos candidatures en temps réel",
+          "Connectez-vous avec des établissements et des professionnels"
+        ]
+      },
+      particulier: {
+        title: "Compte Particulier",
+        description: "Pour les personnes souhaitant poster des annonces ponctuelles à tarifs avantageux",
+        features: [
+          "Créez votre profil professionnel personnalisé",
+          "Accédez à toutes les offres d'emploi",
+          "Gérez vos candidatures facilement",
+          "Échangez avec les recruteurs directement"
+        ]
+      },
+      professionnel: {
+        title: "Compte Professionnel",
+        description: "Idéal pour les entreprises et les recruteurs",
+        features: [
+          "Publiez des offres d'emploi illimitées",
+          "Gérez vos campagnes de recrutement",
+          "Accédez à la CVthèque",
+          "Communiquez directement avec les candidats"
+        ]
+      },
+      etablissement: {
+        title: "Compte Établissement",
+        description: "Destiné aux écoles et centres de formation avec intégration complète de votre système d'information via notre API",
+        features: [
+          "Synchronisez automatiquement les données de vos étudiants",
+          "API REST complète pour une intégration dans vos outils existants",
+          "Webhooks personnalisables pour des mises à jour en temps réel",
+          "Tableau de bord analytique avec export des données"
+        ]
+      }
+    };
+
+    const info = typeInfo[userType as keyof typeof typeInfo];
+
+    return (
+      <div>
+        <div className={FORM_STYLES.infoCard}>
+          <h3 className={FORM_STYLES.infoTitle}>{info.title}</h3>
+          <p className={FORM_STYLES.infoText}>{info.description}</p>
+        </div>
+
+        <h4 className={FORM_STYLES.stepTitle}>Fonctionnalités disponibles</h4>
+        <div className={FORM_STYLES.featureList}>
+          {info.features.map((feature, index) => (
+            <div key={index} className={FORM_STYLES.featureItem}>
+              <svg className={FORM_STYLES.featureIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <span className={FORM_STYLES.featureText}>{feature}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   const renderFormFields = () => {
-    if (step === 1) {
+    if (isLogin) {
       return (
         <div className="space-y-4">
-          <h2 className="text-xl font-bold mb-4">Choisissez votre type de compte</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className={FORM_STYLES.label}>Email</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              className={FORM_STYLES.input}
+              required
+            />
+          </div>
+          <div>
+            <label className={FORM_STYLES.label}>Mot de passe</label>
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              className={FORM_STYLES.input}
+              required
+            />
+          </div>
+        </div>
+      );
+    }
+
+    if (step === 1) {
+      return (
+        <div>
+          <div className={FORM_STYLES.progressBar}>
+            <div className={FORM_STYLES.progressStep} style={{ width: `${getProgress()}%` }} />
+          </div>
+          <h2 className={FORM_STYLES.stepTitle}>Choisissez votre type de compte</h2>
+          <p className={FORM_STYLES.stepDescription}>
+            Sélectionnez le type de compte qui correspond le mieux à votre profil
+          </p>
+          <div className={FORM_STYLES.typeSelector}>
             {USER_TYPES.map(type => (
               <button
                 key={type.id}
                 onClick={() => {
                   setUserType(type.id);
                   setStep(2);
+                  setFormData(prev => ({ ...prev, type: type.id }));
                 }}
-                className={`p-4 border rounded-lg text-left hover:border-green-500 transition-colors
-                  ${userType === type.id ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}
+                className={`${userType === type.id ? FORM_STYLES.typeButtonActive : FORM_STYLES.typeButton}`}
               >
                 <div className="text-2xl mb-2">{type.icon}</div>
-                <div className="font-semibold">{type.label}</div>
-                <div className="text-sm text-gray-600">{type.description}</div>
+                <div className="font-semibold text-black">{type.label}</div>
+                <div className="text-sm text-gray-600 mt-2">{type.description}</div>
               </button>
             ))}
           </div>
@@ -213,52 +369,101 @@ export default function Login() {
       );
     }
 
+    if (step === 2) {
+      return (
+        <div>
+          <div className={FORM_STYLES.progressBar}>
+            <div className={FORM_STYLES.progressStep} style={{ width: `${getProgress()}%` }} />
+          </div>
+          
+          <button 
+            onClick={() => setStep(1)} 
+            className={FORM_STYLES.backButton}
+          >
+            ← Retour
+          </button>
+
+          <h2 className={FORM_STYLES.stepTitle}>
+            Découvrez votre futur compte
+          </h2>
+          <p className={FORM_STYLES.stepDescription}>
+            Voici ce que vous pourrez faire avec votre compte
+          </p>
+
+          {renderAccountTypeInfo()}
+
+          <button
+            type="button"
+            onClick={() => setStep(3)}
+            className={FORM_STYLES.button}
+          >
+            Continuer l'inscription
+          </button>
+        </div>
+      );
+    }
+
     const commonFields = [
-      { id: 'email', label: 'Email', type: 'email' },
-      { id: 'password', label: 'Mot de passe', type: 'password' },
-      { id: 'confirmPassword', label: 'Confirmer le mot de passe', type: 'password' },
-      { id: 'phone', label: 'Téléphone', type: 'tel' }
+      { id: 'email', label: 'Email', type: 'email', required: true },
+      { id: 'password', label: 'Mot de passe', type: 'password', required: true },
+      { id: 'confirmPassword', label: 'Confirmer le mot de passe', type: 'password', required: true }
     ];
 
     const typeSpecificFields = {
       student: [
-        { id: 'first_name', label: 'Prénom', type: 'text' },
-        { id: 'last_name', label: 'Nom', type: 'text' },
-        { id: 'educational_institution', label: 'Établissement', type: 'text' },
-        { id: 'level', label: 'Niveau d\'études', type: 'text' }
+        { id: 'first_name', label: 'Prénom', type: 'text', required: true },
+        { id: 'last_name', label: 'Nom', type: 'text', required: true },
+        { id: 'educational_institution', label: 'Établissement', type: 'text', required: true },
+        { id: 'level', label: 'Niveau d\'études', type: 'text', required: true }
       ],
       particulier: [
-        { id: 'first_name', label: 'Prénom', type: 'text' },
-        { id: 'last_name', label: 'Nom', type: 'text' },
-        { id: 'contact_preference', label: 'Préférence de contact', type: 'text' }
+        { id: 'first_name', label: 'Prénom', type: 'text', required: true },
+        { id: 'last_name', label: 'Nom', type: 'text', required: true }
       ],
       professionnel: [
-        { id: 'full_name', label: 'Nom complet', type: 'text' },
-        { id: 'company_name', label: 'Nom de l\'entreprise', type: 'text' },
-        { id: 'tax_number', label: 'Numéro de TVA', type: 'text' },
-        { id: 'sector', label: 'Secteur d\'activité', type: 'text' }
+        { id: 'full_name', label: 'Nom public', type: 'text', required: true },
+        { id: 'company_name', label: 'Dénomination sociale', type: 'text', required: true },
+        { id: 'tax_number', label: 'Numéro de TVA', type: 'text', required: true },
+        { id: 'sector', label: 'Secteur d\'activité', type: 'text', required: true }
       ],
       etablissement: [
-        { id: 'full_name', label: 'Nom complet', type: 'text' },
-        { id: 'company_name', label: 'Nom de l\'établissement', type: 'text' },
-        { id: 'contact_person_name', label: 'Nom du contact', type: 'text' },
-        { id: 'contact_person_email', label: 'Email du contact', type: 'email' }
+        { id: 'full_name', label: 'Nom public', type: 'text', required: true },
+        { id: 'company_name', label: 'Dénomination sociale', type: 'text', required: true },
+        { id: 'tax_number', label: 'Numéro de TVA', type: 'text', required: true },
+        { id: 'contact_person_name', label: 'Nom du contact', type: 'text', required: true },
+        { id: 'contact_person_email', label: 'Email du contact', type: 'email', required: true },
+        { id: 'contact_person_phone', label: 'Téléphone du contact', type: 'tel', required: true }
       ]
     };
 
+    const currentFields = step === 3 ? commonFields : typeSpecificFields[userType as keyof typeof typeSpecificFields] || [];
+
     return (
-      <div className="space-y-4">
-        <button 
-          onClick={() => setStep(1)} 
-          className="text-sm text-gray-600 hover:text-gray-800"
-        >
-          ← Retour au choix du type de compte
-        </button>
+      <div>
+        <div className={FORM_STYLES.progressBar}>
+          <div className={FORM_STYLES.progressStep} style={{ width: `${getProgress()}%` }} />
+        </div>
         
-        {commonFields.concat(typeSpecificFields[userType as keyof typeof typeSpecificFields] || [])
-          .map(field => (
+        <button 
+          onClick={() => setStep(step - 1)} 
+          className={FORM_STYLES.backButton}
+        >
+          ← Retour
+        </button>
+
+        <h2 className={FORM_STYLES.stepTitle}>
+          {step === 3 ? "Informations de connexion" : "Informations personnelles"}
+        </h2>
+        <p className={FORM_STYLES.stepDescription}>
+          {step === 3 
+            ? "Créez vos identifiants de connexion" 
+            : "Complétez votre profil avec vos informations personnelles"}
+        </p>
+
+        <div className="space-y-4">
+          {currentFields.map(field => (
             <div key={field.id}>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className={FORM_STYLES.label}>
                 {field.label}
               </label>
               <input
@@ -266,11 +471,28 @@ export default function Login() {
                 name={field.id}
                 value={formData[field.id as keyof typeof formData] as string}
                 onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-                required
+                className={FORM_STYLES.input}
+                required={field.required}
               />
             </div>
           ))}
+
+          {step === 3 && (
+            <button
+              type="button"
+              onClick={() => setStep(4)}
+              className={FORM_STYLES.button}
+            >
+              Continuer
+            </button>
+          )}
+
+          {step === 4 && (
+            <button type="submit" className={FORM_STYLES.button}>
+              S'inscrire
+            </button>
+          )}
+        </div>
       </div>
     );
   };
@@ -305,6 +527,21 @@ export default function Login() {
     setError(null);
   };
 
+  const renderSubmitButton = () => {
+    const buttonText = isLogin ? "Se connecter" : "S'inscrire";
+    const loadingText = isLogin ? "Connexion..." : "Inscription...";
+    
+    return (
+      <button 
+        type="submit" 
+        className={`${FORM_STYLES.button} ${isLoading ? 'opacity-75 cursor-not-allowed' : ''}`}
+        disabled={isLoading}
+      >
+        {isLoading ? loadingText : buttonText}
+      </button>
+    );
+  };
+
   return (
     <div className={FORM_STYLES.container}>
       <div className={FORM_STYLES.card}>
@@ -312,56 +549,112 @@ export default function Login() {
           {isLogin ? "Connexion" : "Inscription"}
         </h2>
         
-        {!isLogin && renderFormFields()}
-        
-        <form onSubmit={handleAuth} className={FORM_STYLES.formGroup}>
-          {renderFormFields()}
+        {!showOtherMethods ? (
+          <>
+            <form onSubmit={handleAuth} className={FORM_STYLES.formGroup}>
+              {renderFormFields()}
 
-          {!isLogin && userType === 'employer' && (
-            <div className="mt-4">
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  name="is_integration_admin"
-                  checked={formData.is_integration_admin}
-                  onChange={(e) => setFormData(prev => ({ ...prev, is_integration_admin: e.target.checked }))}
-                  className="rounded border-gray-300 text-green-600 focus:ring-green-500"
-                />
-                <span className="text-sm text-gray-700">Activer le mode admin ?</span>
-              </label>
-              <p className="text-xs text-gray-500 mt-1">
-                Le mode admin vous permettra d'intégrer l'application sur vos différentes plateformes (site web, intranet, applications mobiles, etc.). 
-                <a href="/admin_mode_information" className="text-green-500 hover:text-green-600">En savoir plus sur le mode admin</a>
-              </p>
-            </div>
-          )}
+              {!isLogin && userType === 'employer' && (
+                <div className="mt-4">
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      name="is_integration_admin"
+                      checked={formData.is_integration_admin}
+                      onChange={(e) => setFormData(prev => ({ ...prev, is_integration_admin: e.target.checked }))}
+                      className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                    />
+                    <span className="text-sm text-black">Activer le mode admin ?</span>
+                  </label>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Le mode admin vous permettra d'intégrer l'application sur vos différentes plateformes (site web, intranet, applications mobiles, etc.). 
+                    <a href="/admin_mode_information" className="text-green-500 hover:text-green-600">En savoir plus sur le mode admin</a>
+                  </p>
+                </div>
+              )}
 
-          <button type="submit" className={FORM_STYLES.button}>
-            {isLogin ? "Se connecter" : "S'inscrire"}
-          </button>
+              {isLogin ? (
+                <>
+                  {renderSubmitButton()}
+                  <p className="text-center text-sm text-black">
+                    Pas encore de compte ?
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsLogin(false);
+                        setUserType(null);
+                        setStep(1);
+                        setError(null);
+                        setRetryCount(0);
+                      }}
+                      className={FORM_STYLES.link}
+                    >
+                      S'inscrire
+                    </button>
+                  </p>
+                </>
+              ) : (
+                <>
+                  {(step === 1 || step === 4) && (
+                    <p className="text-center text-sm text-black">
+                      Déjà un compte ?
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsLogin(true);
+                          setUserType(null);
+                          setError(null);
+                          setRetryCount(0);
+                        }}
+                        className={FORM_STYLES.link}
+                      >
+                        Se connecter
+                      </button>
+                    </p>
+                  )}
+                  {step === 4 && renderSubmitButton()}
+                </>
+              )}
+            </form>
 
-          <p className="text-center text-sm text-gray-900">
-            {isLogin ? "Pas encore de compte ?" : "Déjà un compte ?"}
             <button
               type="button"
-              onClick={() => {
-                setIsLogin(!isLogin);
-                setUserType(null);
-              }}
-              className={FORM_STYLES.link}
+              onClick={() => setShowOtherMethods(true)}
+              className={FORM_STYLES.otherMethodsButton}
             >
-              {isLogin ? "S'inscrire" : "Se connecter"}
+              Autres méthodes de connexion
             </button>
-          </p>
-        </form>
+          </>
+        ) : (
+          <div className="space-y-4">
+            <button
+              type="button"
+              onClick={handleGuestLogin}
+              className={FORM_STYLES.ssoButton}
+            >
+              Continuer en tant qu'invité
+            </button>
 
-        <button
-          type="button"
-          onClick={() => setShowOtherMethods(false)}
-          className={FORM_STYLES.otherMethodsButton}
-        >
-          Retour à la connexion classique
-        </button>
+            {Object.entries(INTEGRATION_CONFIGS).map(([key, config]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => handleSSOLogin(key as IntegrationProvider)}
+                className={FORM_STYLES.ssoButton}
+              >
+                Se connecter avec {config.name}
+              </button>
+            ))}
+
+            <button
+              type="button"
+              onClick={() => setShowOtherMethods(false)}
+              className={FORM_STYLES.otherMethodsButton}
+            >
+              Retour à la connexion classique
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

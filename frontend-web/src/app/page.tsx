@@ -47,99 +47,256 @@ export default function Home() {
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="text-center">
             <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
-              {userType === 'employer' ? (
-                <>
-                  <span className="block">Trouvez vos futurs talents</span>
-                  <span className="block text-[#3bee5e]">avec StuJob</span>
-                </>
-              ) : (
-                <>
-                  <span className="block">Trouvez votre stage étudiant</span>
-                  <span className="block text-[#3bee5e]">avec StuJob</span>
-                </>
-              )}
+              {(() => {
+                switch(userType) {
+                  case 'student':
+                    return (
+                      <>
+                        <span className="block">Trouvez votre stage idéal</span>
+                        <span className="block text-[#3bee5e]">et lancez votre carrière</span>
+                      </>
+                    );
+                  case 'particulier':
+                    return (
+                      <>
+                        <span className="block">Publiez vos annonces</span>
+                        <span className="block text-[#3bee5e]">en toute simplicité</span>
+                      </>
+                    );
+                  case 'professionnel':
+                    return (
+                      <>
+                        <span className="block">Recrutez vos talents</span>
+                        <span className="block text-[#3bee5e]">de demain</span>
+                      </>
+                    );
+                  case 'etablissement':
+                    return (
+                      <>
+                        <span className="block">Gérez vos étudiants</span>
+                        <span className="block text-[#3bee5e]">et leurs stages</span>
+                      </>
+                    );
+                  default:
+                    return (
+                      <>
+                        <span className="block">Bienvenue sur StuJob</span>
+                        <span className="block text-[#3bee5e]">La plateforme qui connecte les talents</span>
+                      </>
+                    );
+                }
+              })()}
             </h1>
             <p className="mt-3 max-w-md mx-auto text-base text-gray-600 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
-              {userType === 'employer' ? 
-                "La plateforme qui vous connecte aux meilleurs étudiants pour vos stages et emplois." :
-                "La plateforme qui connecte les étudiants aux meilleures opportunités de stages."}
+              {(() => {
+                switch(userType) {
+                  case 'student':
+                    return "Accédez aux meilleures opportunités de stages et construisez votre avenir professionnel.";
+                  case 'particulier':
+                    return "Publiez vos offres d'emploi ponctuelles et trouvez rapidement les candidats idéaux.";
+                  case 'professionnel':
+                    return "Gérez efficacement vos recrutements et trouvez les meilleurs talents pour votre entreprise.";
+                  case 'etablissement':
+                    return "Suivez le parcours de vos étudiants et développez vos relations avec les entreprises.";
+                  default:
+                    return "La plateforme qui connecte étudiants, particuliers, entreprises et établissements.";
+                }
+              })()}
             </p>
             
             <div className="mt-10">
-              {userType === 'employer' ? (
-                <div className="flex justify-center">
-                  <a
-                    href="/jobs/create"
-                    className="bg-[#3bee5e] text-white px-8 py-4 rounded-md text-lg font-medium hover:bg-[#32d951] transition-colors shadow-lg transform hover:scale-105 transition-transform"
-                  >
-                    Publier votre première annonce gratuitement
-                  </a>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center gap-6">
-                  <div className="bg-white p-4 shadow-lg rounded-lg max-w-2xl mx-auto border border-gray-200">
-                    <div className="flex flex-col sm:flex-row gap-4">
-                      <input
-                        type="text"
-                        placeholder="Stage, entreprise ou secteur"
-                        className="flex-1 p-3 bg-gray-50 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#3bee5e] focus:border-transparent placeholder-gray-400"
-                      />
-                      <input
-                        type="text"
-                        placeholder="Ville ou région"
-                        className="flex-1 p-3 bg-gray-50 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#3bee5e] focus:border-transparent placeholder-gray-400"
-                      />
-                      <button className="bg-[#3bee5e] text-white px-6 py-3 rounded-md hover:bg-[#32d951] transition-colors">
-                        Rechercher
-                      </button>
-                    </div>
-                  </div>
-                  <a
-                    href="/jobs"
-                    className="bg-white text-[#3bee5e] border-2 border-[#3bee5e] px-8 py-4 rounded-md text-lg font-medium hover:bg-[#3bee5e] hover:text-white transition-colors shadow-lg transform hover:scale-105"
-                  >
-                    Voir toutes les offres disponibles
-                  </a>
-                </div>
-              )}
+              {(() => {
+                switch(userType) {
+                  case 'student':
+                    return (
+                      <div className="flex flex-col items-center gap-6">
+                        <div className="bg-white p-4 shadow-lg rounded-lg max-w-2xl mx-auto border border-gray-200">
+                          <div className="flex flex-col sm:flex-row gap-4">
+                            <input
+                              type="text"
+                              placeholder="Stage, entreprise ou secteur"
+                              className="flex-1 p-3 bg-gray-50 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#3bee5e] focus:border-transparent placeholder-gray-400"
+                            />
+                            <input
+                              type="text"
+                              placeholder="Ville ou région"
+                              className="flex-1 p-3 bg-gray-50 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#3bee5e] focus:border-transparent placeholder-gray-400"
+                            />
+                            <button className="bg-[#3bee5e] text-white px-6 py-3 rounded-md hover:bg-[#32d951] transition-colors">
+                              Rechercher
+                            </button>
+                          </div>
+                        </div>
+                        <a
+                          href="/jobs"
+                          className="bg-white text-[#3bee5e] border-2 border-[#3bee5e] px-8 py-4 rounded-md text-lg font-medium hover:bg-[#3bee5e] hover:text-white transition-colors shadow-lg transform hover:scale-105"
+                        >
+                          Voir toutes les offres de stage
+                        </a>
+                      </div>
+                    );
+                  case 'particulier':
+                    return (
+                      <div className="flex justify-center">
+                        <a
+                          href="/jobs/create"
+                          className="bg-[#3bee5e] text-white px-8 py-4 rounded-md text-lg font-medium hover:bg-[#32d951] transition-colors shadow-lg transform hover:scale-105 transition-transform"
+                        >
+                          Publier une annonce
+                        </a>
+                      </div>
+                    );
+                  case 'professionnel':
+                    return (
+                      <div className="flex justify-center space-x-4">
+                        <a
+                          href="/jobs/create"
+                          className="bg-[#3bee5e] text-white px-8 py-4 rounded-md text-lg font-medium hover:bg-[#32d951] transition-colors shadow-lg transform hover:scale-105 transition-transform"
+                        >
+                          Publier une offre
+                        </a>
+                        <a
+                          href="/cv-database"
+                          className="bg-white text-[#3bee5e] border-2 border-[#3bee5e] px-8 py-4 rounded-md text-lg font-medium hover:bg-[#3bee5e] hover:text-white transition-colors shadow-lg transform hover:scale-105"
+                        >
+                          Accéder à la CVthèque
+                        </a>
+                      </div>
+                    );
+                  case 'etablissement':
+                    return (
+                      <div className="flex justify-center space-x-4">
+                        <a
+                          href="/students"
+                          className="bg-[#3bee5e] text-white px-8 py-4 rounded-md text-lg font-medium hover:bg-[#32d951] transition-colors shadow-lg transform hover:scale-105 transition-transform"
+                        >
+                          Gérer mes étudiants
+                        </a>
+                        <a
+                          href="/integration"
+                          className="bg-white text-[#3bee5e] border-2 border-[#3bee5e] px-8 py-4 rounded-md text-lg font-medium hover:bg-[#3bee5e] hover:text-white transition-colors shadow-lg transform hover:scale-105"
+                        >
+                          Configurer l'API
+                        </a>
+                      </div>
+                    );
+                  default:
+                    return (
+                      <div className="flex justify-center">
+                        <a
+                          href="/login"
+                          className="bg-[#3bee5e] text-white px-8 py-4 rounded-md text-lg font-medium hover:bg-[#32d951] transition-colors shadow-lg transform hover:scale-105 transition-transform"
+                        >
+                          Commencer maintenant
+                        </a>
+                      </div>
+                    );
+                }
+              })()}
             </div>
           </div>
 
           <div className="mt-20">
             <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
-                <div className="text-[#3bee5e] text-2xl mb-4">✨</div>
-                <h3 className="text-lg font-medium text-gray-900">
-                  {userType === 'employer' ? "Candidats Qualifiés" : "Stages Pertinents"}
-                </h3>
-                <p className="mt-2 text-gray-600">
-                  {userType === 'employer' ? 
-                    "Accédez à une base de données d'étudiants motivés et qualifiés." :
-                    "Des opportunités de stages adaptées à votre formation et vos aspirations."}
-                </p>
-              </div>
-              
-              <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
-                <div className="text-[#3bee5e] text-2xl mb-4">🔍</div>
-                <h3 className="text-lg font-medium text-gray-900">Recherche Simplifiée</h3>
-                <p className="mt-2 text-gray-600">
-                  {userType === 'employer' ?
-                    "Trouvez rapidement les profils qui correspondent à vos besoins." :
-                    "Une interface intuitive pour trouver facilement le stage idéal."}
-                </p>
-              </div>
+              {(() => {
+                const features = {
+                  student: [
+                    {
+                      icon: "✨",
+                      title: "Stages Pertinents",
+                      description: "Des opportunités de stages adaptées à votre formation et vos aspirations."
+                    },
+                    {
+                      icon: "🔍",
+                      title: "Recherche Simplifiée",
+                      description: "Une interface intuitive pour trouver facilement le stage idéal."
+                    },
+                    {
+                      icon: "🚀",
+                      title: "Suivi de Candidatures",
+                      description: "Gérez et suivez toutes vos candidatures en un seul endroit."
+                    }
+                  ],
+                  particulier: [
+                    {
+                      icon: "✨",
+                      title: "Publication Simple",
+                      description: "Publiez vos annonces rapidement et sans complications."
+                    },
+                    {
+                      icon: "🔍",
+                      title: "Gestion des Candidatures",
+                      description: "Recevez et gérez les candidatures efficacement."
+                    },
+                    {
+                      icon: "🚀",
+                      title: "Tarifs Avantageux",
+                      description: "Des prix adaptés pour les recrutements ponctuels."
+                    }
+                  ],
+                  professionnel: [
+                    {
+                      icon: "✨",
+                      title: "Recrutement Efficace",
+                      description: "Des outils performants pour optimiser votre processus de recrutement."
+                    },
+                    {
+                      icon: "🔍",
+                      title: "CVthèque Complète",
+                      description: "Accédez à une base de données de candidats qualifiés."
+                    },
+                    {
+                      icon: "🚀",
+                      title: "Gestion Multi-offres",
+                      description: "Gérez toutes vos offres d'emploi depuis une interface unique."
+                    }
+                  ],
+                  etablissement: [
+                    {
+                      icon: "✨",
+                      title: "Suivi des Étudiants",
+                      description: "Suivez le parcours et les stages de vos étudiants en temps réel."
+                    },
+                    {
+                      icon: "🔍",
+                      title: "API Complète",
+                      description: "Intégrez nos services à votre système d'information existant."
+                    },
+                    {
+                      icon: "🚀",
+                      title: "Relations Entreprises",
+                      description: "Développez votre réseau d'entreprises partenaires."
+                    }
+                  ],
+                  default: [
+                    {
+                      icon: "✨",
+                      title: "Pour Tous",
+                      description: "Une solution adaptée à chaque profil d'utilisateur."
+                    },
+                    {
+                      icon: "🔍",
+                      title: "Simple et Efficace",
+                      description: "Une plateforme intuitive pour tous vos besoins."
+                    },
+                    {
+                      icon: "🚀",
+                      title: "Toujours Disponible",
+                      description: "Un support réactif pour vous accompagner."
+                    }
+                  ]
+                };
 
-              <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
-                <div className="text-[#3bee5e] text-2xl mb-4">🚀</div>
-                <h3 className="text-lg font-medium text-gray-900">
-                  {userType === 'employer' ? "Recrutement Efficace" : "Expérience Enrichissante"}
-                </h3>
-                <p className="mt-2 text-gray-600">
-                  {userType === 'employer' ?
-                    "Des outils performants pour un processus de recrutement optimisé." :
-                    "Des stages qui vous permettront d'acquérir une expérience professionnelle valorisante."}
-                </p>
-              </div>
+                const currentFeatures = features[userType as keyof typeof features] || features.default;
+
+                return currentFeatures.map((feature, index) => (
+                  <div key={index} className="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
+                    <div className="text-[#3bee5e] text-2xl mb-4">{feature.icon}</div>
+                    <h3 className="text-lg font-medium text-gray-900">{feature.title}</h3>
+                    <p className="mt-2 text-gray-600">{feature.description}</p>
+                  </div>
+                ));
+              })()}
             </div>
           </div>
         </main>

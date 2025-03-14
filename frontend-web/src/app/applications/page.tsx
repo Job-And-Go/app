@@ -52,10 +52,10 @@ export default function Applications() {
           `)
           .order('created_at', { ascending: false });
 
-        if (profileData.type === 'employer') {
-          query.eq('jobs.employer_id', user.id);
-        } else {
+        if (profileData.type === 'particulier' || profileData.type === 'professionnel') {
           query.eq('student_id', user.id);
+        } else {
+          query.eq('jobs.employer_id', user.id);
         }
 
         const { data, error } = await query;
@@ -92,7 +92,7 @@ export default function Applications() {
   return (
     <div className="max-w-7xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">
-        {userType === 'employer' ? 'Candidatures reçues' : 'Mes candidatures'}
+        {userType === 'particulier' || userType === 'professionnel' ? 'Candidatures reçues' : 'Mes candidatures'}
       </h1>
 
       <div className="grid gap-6">
@@ -108,7 +108,7 @@ export default function Applications() {
               </div>
               
               <div className="flex flex-col gap-2">
-                {userType === 'employer' && application.status === 'pending' ? (
+                {userType === 'particulier' || userType === 'professionnel' && application.status === 'pending' ? (
                   <>
                     <button
                       onClick={() => updateApplicationStatus(application.id, 'accepted')}
@@ -138,7 +138,7 @@ export default function Applications() {
                       <button
                         onClick={() => handleMessageClick(
                           application.id,
-                          userType === 'employer' ? application.student.id : application.job.employer_id
+                          userType === 'particulier' || userType === 'professionnel' ? application.student.id : application.job.employer_id
                         )}
                         className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
                       >

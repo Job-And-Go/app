@@ -8,12 +8,40 @@ import FileUpload from '@/components/FileUpload';
 import { useNotificationStore } from '@/store/notificationStore';
 import Layout from '@/components/Layout';
 
+interface UserProfile {
+  id: string;
+  full_name: string;
+  type: string;
+  bio: string;
+  avatar_url: string;
+  cv_url: string;
+  code_postal: string;
+  localite: string;
+  is_private: boolean;
+  accept_dm: boolean;
+  is_integration_admin: boolean;
+  first_name?: string;
+  last_name?: string;
+  educational_institution?: string;
+  level?: string;
+  contact_preference?: string;
+  company_name?: string;
+  legal_name?: string;
+  tax_number?: string;
+  sector?: string;
+  contact_person_name?: string;
+  contact_person_email?: string;
+  contact_person_phone?: string;
+  phone: string;
+}
+
 export default function Profile() {
   const router = useRouter();
   const { setNotification } = useNotificationStore();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
-  const [userProfile, setUserProfile] = useState({
+  const [userProfile, setUserProfile] = useState<UserProfile>({
+    id: "",
     full_name: "",
     type: "",
     bio: "",
@@ -23,10 +51,15 @@ export default function Profile() {
     localite: "",
     is_private: true,
     accept_dm: false,
-    is_integration_admin: false
+    is_integration_admin: false,
+    first_name: "",
+    last_name: "",
+    phone: ""
   });
 
   const [showAdminConfirmation, setShowAdminConfirmation] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     const getProfile = async () => {
@@ -38,14 +71,68 @@ export default function Profile() {
         }
         setUser(user);
 
-        const { data: profile } = await supabase
+        // Vérifier si le profil existe
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', user.id)
           .single();
 
-        if (profile) {
+        if (profileError && profileError.code === 'PGRST116') {
+          // Le profil n'existe pas, on le crée
+          const { error: insertError } = await supabase
+            .from('profiles')
+            .insert({
+              id: user.id,
+              email: user.email,
+              full_name: user.user_metadata?.full_name || "",
+              type: user.user_metadata?.type || "",
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              is_private: true,
+              accept_dm: false,
+              is_integration_admin: false
+            });
+
+          if (insertError) throw insertError;
+
+          // Récupérer le profil nouvellement créé
+          const { data: newProfile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+
+          if (newProfile) {
+            setUserProfile({
+              id: newProfile.id,
+              full_name: newProfile.full_name || "",
+              type: newProfile.type || "",
+              bio: newProfile.bio || "",
+              avatar_url: newProfile.avatar_url || "",
+              cv_url: newProfile.cv_url || "",
+              code_postal: newProfile.code_postal || "",
+              localite: newProfile.localite || "",
+              is_private: newProfile.is_private ?? true,
+              accept_dm: newProfile.accept_dm ?? false,
+              is_integration_admin: newProfile.is_integration_admin ?? false,
+              first_name: newProfile.first_name || "",
+              last_name: newProfile.last_name || "",
+              educational_institution: newProfile.educational_institution || "",
+              level: newProfile.level || "",
+              contact_preference: newProfile.contact_preference || "",
+              company_name: newProfile.company_name || "",
+              tax_number: newProfile.tax_number || "",
+              sector: newProfile.sector || "",
+              contact_person_name: newProfile.contact_person_name || "",
+              contact_person_email: newProfile.contact_person_email || "",
+              contact_person_phone: newProfile.contact_person_phone || "",
+              phone: newProfile.phone || ""
+            });
+          }
+        } else if (profile) {
           setUserProfile({
+            id: profile.id,
             full_name: profile.full_name || "",
             type: profile.type || "",
             bio: profile.bio || "",
@@ -55,12 +142,25 @@ export default function Profile() {
             localite: profile.localite || "",
             is_private: profile.is_private ?? true,
             accept_dm: profile.accept_dm ?? false,
-            is_integration_admin: profile.is_integration_admin ?? false
+            is_integration_admin: profile.is_integration_admin ?? false,
+            first_name: profile.first_name || "",
+            last_name: profile.last_name || "",
+            educational_institution: profile.educational_institution || "",
+            level: profile.level || "",
+            contact_preference: profile.contact_preference || "",
+            company_name: profile.company_name || "",
+            tax_number: profile.tax_number || "",
+            sector: profile.sector || "",
+            contact_person_name: profile.contact_person_name || "",
+            contact_person_email: profile.contact_person_email || "",
+            contact_person_phone: profile.contact_person_phone || "",
+            phone: profile.phone || ""
           });
         }
         setLoading(false);
       } catch (error) {
         console.error("Erreur lors du chargement du profil:", error);
+        setError("Erreur lors du chargement du profil");
         setLoading(false);
       }
     };
@@ -108,43 +208,190 @@ export default function Profile() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
+    setError(null);
+
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('Non authentifié');
+      const updateData = { ...userProfile };
+      
+      // Gestion des noms selon le type d'utilisateur
+      if (userProfile.type === 'student' || userProfile.type === 'particulier') {
+        updateData.first_name = userProfile.first_name;
+        updateData.last_name = userProfile.last_name;
+        updateData.full_name = `${userProfile.first_name} ${userProfile.last_name}`;
+      } else {
+        updateData.full_name = userProfile.full_name;
       }
 
       const { error } = await supabase
         .from('profiles')
-        .upsert({
-          id: user.id,
-          full_name: userProfile.full_name,
-          type: userProfile.type,
-          bio: userProfile.bio,
-          avatar_url: userProfile.avatar_url,
-          cv_url: userProfile.cv_url,
-          code_postal: userProfile.code_postal,
-          localite: userProfile.localite,
-          is_private: userProfile.is_private,
-          accept_dm: userProfile.accept_dm,
-          is_integration_admin: userProfile.is_integration_admin,
-          updated_at: new Date().toISOString(),
-        }, { 
-          onConflict: 'id'
-        });
+        .update(updateData)
+        .eq('id', userProfile.id);
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      setNotification('Profil mis à jour avec succès !', 'success');
-      router.push('/');
+      setSuccess('Profil mis à jour avec succès');
     } catch (error: any) {
-      console.error("Erreur lors de la mise à jour du profil:", error.message || error);
-      setNotification('Erreur lors de la mise à jour du profil', 'error');
+      setError(error.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const renderTypeSpecificFields = () => {
+    switch (userProfile.type) {
+      case 'student':
+        return (
+          <>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Établissement</label>
+              <input
+                type="text"
+                name="educational_institution"
+                value={userProfile.educational_institution}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 text-black"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Niveau d'études</label>
+              <input
+                type="text"
+                name="level"
+                value={userProfile.level}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 text-black"
+                required
+              />
+            </div>
+          </>
+        );
+      case 'particulier':
+        return (
+          <>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Préférence de contact</label>
+              <input
+                type="text"
+                name="contact_preference"
+                value={userProfile.contact_preference}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 text-black"
+              />
+            </div>
+          </>
+        );
+      case 'professionnel':
+        return (
+          <>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Nom public</label>
+              <input
+                type="text"
+                name="full_name"
+                value={userProfile.full_name}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 text-black"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Dénomination sociale</label>
+              <input
+                type="text"
+                name="company_name"
+                value={userProfile.company_name}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 text-black"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Numéro de TVA</label>
+              <input
+                type="text"
+                name="tax_number"
+                value={userProfile.tax_number}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 text-black"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Secteur d'activité</label>
+              <input
+                type="text"
+                name="sector"
+                value={userProfile.sector}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 text-black"
+                required
+              />
+            </div>
+          </>
+        );
+      case 'etablissement':
+        return (
+          <>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Nom public</label>
+              <input
+                type="text"
+                name="full_name"
+                value={userProfile.full_name}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 text-black"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Dénomination sociale</label>
+              <input
+                type="text"
+                name="company_name"
+                value={userProfile.company_name}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 text-black"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Nom du contact</label>
+              <input
+                type="text"
+                name="contact_person_name"
+                value={userProfile.contact_person_name}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 text-black"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Email du contact</label>
+              <input
+                type="email"
+                name="contact_person_email"
+                value={userProfile.contact_person_email}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 text-black"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Téléphone du contact</label>
+              <input
+                type="tel"
+                name="contact_person_phone"
+                value={userProfile.contact_person_phone}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 text-black"
+                required
+              />
+            </div>
+          </>
+        );
+      default:
+        return null;
     }
   };
 
@@ -160,11 +407,22 @@ export default function Profile() {
           
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Nom complet</label>
+              <label className="block text-sm font-medium text-gray-700">Prénom</label>
               <input
                 type="text"
-                name="full_name"
-                value={userProfile.full_name}
+                name="first_name"
+                value={userProfile.first_name || ''}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 text-black"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Nom</label>
+              <input
+                type="text"
+                name="last_name"
+                value={userProfile.last_name || ''}
                 onChange={handleChange}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 text-black"
                 required
@@ -181,6 +439,19 @@ export default function Profile() {
                 disabled
               />
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Téléphone</label>
+              <input
+                type="tel"
+                name="phone"
+                value={userProfile.phone}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 text-black"
+              />
+            </div>
+
+            {renderTypeSpecificFields()}
 
             <div>
               <label className="block text-sm font-medium text-gray-700">Bio</label>
