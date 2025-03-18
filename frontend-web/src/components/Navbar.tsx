@@ -48,6 +48,189 @@ interface NavbarProps {
   handleSignOut: () => Promise<void>;
 }
 
+interface NotificationsMenuProps {
+  notifications: Notification[];
+  unreadCount: number;
+  markAsRead: (id: string) => void;
+  markAllAsRead: () => void;
+}
+
+interface MessagesMenuProps {
+  recentMessages: Message[];
+  unreadMessagesCount: number;
+  router: any; // On garde any ici car le type exact dépend de Next.js
+}
+
+interface ProfileMenuProps {
+  userProfile: {
+    type?: string;
+    [key: string]: any;
+  };
+  handleSignOut: () => Promise<void>;
+}
+
+const Logo = () => (
+  <div className="flex items-center">
+    <a href="/" className="cursor-pointer">
+      <Image 
+        src="/logo.svg"
+        alt="StuJob Logo"
+        width={120}
+        height={40}
+        priority
+      />
+    </a>
+  </div>
+);
+
+const NotificationsMenu = ({ notifications, unreadCount, markAsRead, markAllAsRead }: NotificationsMenuProps) => (
+  <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg py-1 z-20 border border-gray-200">
+    <div className="p-3 border-b border-gray-200 flex justify-between items-center">
+      <h3 className="text-lg font-semibold">Notifications</h3>
+      {unreadCount > 0 && (
+        <button
+          onClick={() => markAllAsRead()}
+          className="text-sm text-blue-600 hover:text-blue-800"
+        >
+          Tout marquer comme lu
+        </button>
+      )}
+    </div>
+    <div className="max-h-96 overflow-y-auto">
+      {notifications.length === 0 ? (
+        <p className="p-4 text-gray-500 text-center">Aucune notification</p>
+      ) : (
+        notifications.map(notification => (
+          <div
+            key={notification.id}
+            className={`p-4 border-b hover:bg-gray-50 cursor-pointer ${
+              !notification.read ? 'bg-blue-50' : ''
+            }`}
+            onClick={() => markAsRead(notification.id)}
+          >
+            <p className="text-sm text-gray-800">
+              {notification.type === 'job_created' && `Nouvelle offre : ${notification.job?.title}`}
+              {notification.type === 'application_received' && `Nouvelle candidature pour ${notification.job?.title}`}
+              {notification.type === 'application_status_changed' && 
+                `Statut de candidature mis à jour : ${notification.application?.job?.title} - ${notification.application?.status}`
+              }
+              {notification.type === 'job_viewed' && `Votre offre ${notification.job?.title} a été vue`}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              {new Date(notification.created_at).toLocaleDateString()}
+            </p>
+          </div>
+        ))
+      )}
+    </div>
+  </div>
+);
+
+const MessagesMenu = ({ recentMessages, unreadMessagesCount, router }: MessagesMenuProps) => (
+  <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg py-1 z-20 border border-gray-200">
+    <div className="p-3 border-b border-gray-200 flex justify-between items-center">
+      <h3 className="text-lg font-semibold">Messages</h3>
+      <button
+        onClick={() => router.push('/messages')}
+        className="text-sm text-blue-600 hover:text-blue-800"
+      >
+        Voir tout
+      </button>
+    </div>
+    <div className="max-h-96 overflow-y-auto">
+      {recentMessages.length === 0 ? (
+        <p className="p-4 text-gray-500 text-center">Aucun message</p>
+      ) : (
+        recentMessages.map(message => (
+          <div
+            key={message.id}
+            className={`p-4 border-b hover:bg-gray-50 cursor-pointer ${
+              !message.read ? 'bg-blue-50' : ''
+            }`}
+            onClick={() => router.push(`/messages?user=${message.sender_id}`)}
+          >
+            <div className="flex items-center gap-3">
+              <img
+                src={message.sender.avatar_url || '/default-avatar.png'}
+                alt="Avatar"
+                className="w-8 h-8 rounded-full"
+              />
+              <div>
+                <p className="font-medium text-sm">{message.sender.full_name}</p>
+                <p className="text-sm text-gray-600 truncate">{message.content}</p>
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              {new Date(message.created_at).toLocaleDateString()}
+            </p>
+          </div>
+        ))
+      )}
+    </div>
+  </div>
+);
+
+const ProfileMenu = ({ userProfile, handleSignOut }: ProfileMenuProps) => (
+  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 border border-gray-200">
+    <a href="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+      Mon Profil
+    </a>
+    
+    {userProfile?.type === 'student' && (
+      <>
+        <a href="/jobs" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+          Offres disponibles
+        </a>
+        <a href="/favorites" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+          Mes Favoris
+        </a>
+      </>
+    )}
+    
+    {(userProfile?.type === 'particulier' || userProfile?.type === 'professionel') && (
+      <>
+        <a href="/jobs" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+          Mes Offres
+        </a>
+        <a href="/jobs/create" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+          Créer une offre
+        </a>
+      </>
+    )}
+    
+    {(userProfile?.type === 'etablissement' || userProfile?.type === 'professionel') && (
+      <a href="/integration" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+        Système d'Intégration
+      </a>
+    )}
+    
+    <a href="/settings" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+      Paramètres
+    </a>
+    
+    <button
+      onClick={handleSignOut}
+      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+    >
+      Se déconnecter
+    </button>
+  </div>
+);
+
+const MainNav = () => (
+  <div className="hidden md:flex items-center space-x-4">
+    <a href="/blog" className="text-gray-700 hover:text-gray-900 px-3 py-2 text-sm">
+      Blog
+    </a>
+    <a href="/about" className="text-gray-700 hover:text-gray-900 px-3 py-2 text-sm">
+      À propos
+    </a>
+    <a href="/partners" className="text-gray-700 hover:text-gray-900 px-3 py-2 text-sm">
+      Partenaires
+    </a>
+  </div>
+);
+
 export default function Navbar({ user, userProfile, handleSignOut }: NavbarProps) {
   const router = useRouter();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -56,12 +239,7 @@ export default function Navbar({ user, userProfile, handleSignOut }: NavbarProps
   const [recentMessages, setRecentMessages] = useState<Message[]>([]);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   
-  const { 
-    notifications, 
-    unreadCount, 
-    markAsRead, 
-    markAllAsRead 
-  } = useNotifications(user?.id);
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications(user?.id);
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -110,18 +288,12 @@ export default function Navbar({ user, userProfile, handleSignOut }: NavbarProps
   return (
     <nav className="bg-white shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex items-center">
-            <a href="/" className="cursor-pointer">
-              <Image 
-                src="/logo.svg"
-                alt="StuJob Logo"
-                width={120}
-                height={40}
-                priority
-              />
-            </a>
+        <div className="flex justify-between items-center h-16">
+          <div className="flex items-center gap-8">
+            <Logo />
+            <MainNav />
           </div>
+          
           <div className="flex items-center gap-4">
             {user && (
               <>
@@ -139,50 +311,16 @@ export default function Navbar({ user, userProfile, handleSignOut }: NavbarProps
                       </span>
                     )}
                   </button>
-
                   {showNotifications && (
-                    <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg py-1 z-20 border border-gray-200">
-                      <div className="p-3 border-b border-gray-200 flex justify-between items-center">
-                        <h3 className="text-lg font-semibold">Notifications</h3>
-                        {unreadCount > 0 && (
-                          <button
-                            onClick={() => markAllAsRead()}
-                            className="text-sm text-blue-600 hover:text-blue-800"
-                          >
-                            Tout marquer comme lu
-                          </button>
-                        )}
-                      </div>
-                      <div className="max-h-96 overflow-y-auto">
-                        {notifications.length === 0 ? (
-                          <p className="p-4 text-gray-500 text-center">Aucune notification</p>
-                        ) : (
-                          notifications.map(notification => (
-                            <div
-                              key={notification.id}
-                              className={`p-4 border-b hover:bg-gray-50 cursor-pointer ${
-                                !notification.read ? 'bg-blue-50' : ''
-                              }`}
-                              onClick={() => markAsRead(notification.id)}
-                            >
-                              <p className="text-sm text-gray-800">
-                                {notification.type === 'job_created' && `Nouvelle offre : ${notification.job?.title}`}
-                                {notification.type === 'application_received' && `Nouvelle candidature pour ${notification.job?.title}`}
-                                {notification.type === 'application_status_changed' && 
-                                  `Statut de candidature mis à jour : ${notification.application?.job?.title} - ${notification.application?.status}`
-                                }
-                                {notification.type === 'job_viewed' && `Votre offre ${notification.job?.title} a été vue`}
-                              </p>
-                              <p className="text-xs text-gray-500 mt-1">
-                                {new Date(notification.created_at).toLocaleDateString()}
-                              </p>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    </div>
+                    <NotificationsMenu 
+                      notifications={notifications}
+                      unreadCount={unreadCount}
+                      markAsRead={markAsRead}
+                      markAllAsRead={markAllAsRead}
+                    />
                   )}
                 </div>
+
                 <div className="relative">
                   <button
                     onClick={() => setShowMessages(!showMessages)}
@@ -197,49 +335,12 @@ export default function Navbar({ user, userProfile, handleSignOut }: NavbarProps
                       </span>
                     )}
                   </button>
-
                   {showMessages && (
-                    <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg py-1 z-20 border border-gray-200">
-                      <div className="p-3 border-b border-gray-200 flex justify-between items-center">
-                        <h3 className="text-lg font-semibold">Messages</h3>
-                        <button
-                          onClick={() => router.push('/messages')}
-                          className="text-sm text-blue-600 hover:text-blue-800"
-                        >
-                          Voir tout
-                        </button>
-                      </div>
-                      <div className="max-h-96 overflow-y-auto">
-                        {recentMessages.length === 0 ? (
-                          <p className="p-4 text-gray-500 text-center">Aucun message</p>
-                        ) : (
-                          recentMessages.map(message => (
-                            <div
-                              key={message.id}
-                              className={`p-4 border-b hover:bg-gray-50 cursor-pointer ${
-                                !message.read ? 'bg-blue-50' : ''
-                              }`}
-                              onClick={() => router.push(`/messages?user=${message.sender_id}`)}
-                            >
-                              <div className="flex items-center gap-3">
-                                <img
-                                  src={message.sender.avatar_url || '/default-avatar.png'}
-                                  alt="Avatar"
-                                  className="w-8 h-8 rounded-full"
-                                />
-                                <div>
-                                  <p className="font-medium text-sm">{message.sender.full_name}</p>
-                                  <p className="text-sm text-gray-600 truncate">{message.content}</p>
-                                </div>
-                              </div>
-                              <p className="text-xs text-gray-500 mt-1">
-                                {new Date(message.created_at).toLocaleDateString()}
-                              </p>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    </div>
+                    <MessagesMenu 
+                      recentMessages={recentMessages}
+                      unreadMessagesCount={unreadMessagesCount}
+                      router={router}
+                    />
                   )}
                 </div>
               </>
@@ -266,44 +367,7 @@ export default function Navbar({ user, userProfile, handleSignOut }: NavbarProps
                 </button>
                 
                 {showProfileMenu && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 border border-gray-200">
-                    <a
-                      href={user.email ? "/profile" : "/login"}
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      Mon Profil
-                    </a>
-                    {userProfile?.type === 'student' && (
-                      <>
-                        <a
-                          href="/favorites"
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                          Mes Favoris
-                        </a>
-                      </>
-                    )}
-                    {userProfile?.type === 'employer' && userProfile?.is_integration_admin && (
-                      <a
-                        href="/integration"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        Intégration
-                      </a>
-                    )}
-                    <a
-                      href={user.email ? "/settings" : "/login"}
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      Paramètres
-                    </a>
-                    <button
-                      onClick={handleSignOut}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      Se déconnecter
-                    </button>
-                  </div>
+                  <ProfileMenu userProfile={userProfile} handleSignOut={handleSignOut} />
                 )}
               </div>
             ) : (

@@ -51,7 +51,38 @@ export function useMessages(userId: string, otherId?: string) {
     setLoading(false);
   };
 
+  const validateMessage = (content: string): { isValid: boolean; error?: string } => {
+    // Regex pour détecter les emails
+    const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
+    
+    // Regex pour détecter les numéros de téléphone (formats internationaux)
+    const phoneRegex = /(?:\+\d{1,3}[-. ]?)?\d{2,}[-. ]?\d{2,}[-. ]?\d{2,}[-. ]?\d{2,}/;
+    
+    // Regex pour détecter les liens
+    const urlRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+)/;
+
+    if (emailRegex.test(content)) {
+      return { isValid: false, error: "Les adresses email ne sont pas autorisées dans les messages." };
+    }
+
+    if (phoneRegex.test(content)) {
+      return { isValid: false, error: "Les numéros de téléphone ne sont pas autorisés dans les messages." };
+    }
+
+    if (urlRegex.test(content)) {
+      return { isValid: false, error: "Les liens ne sont pas autorisés dans les messages." };
+    }
+
+    return { isValid: true };
+  };
+
   const sendMessage = async (content: string, receiverId: string, applicationId?: string) => {
+    // Valider le contenu du message
+    const validation = validateMessage(content);
+    if (!validation.isValid) {
+      throw new Error(validation.error);
+    }
+
     // Vérifier si l'envoi est autorisé
     const canSend = await checkMessagePermission(receiverId, applicationId);
     if (!canSend) {

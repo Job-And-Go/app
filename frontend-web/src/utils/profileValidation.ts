@@ -6,6 +6,11 @@ export const validateFormByUserType = (formData: any, userType: string) => {
     errors.push('Email et mot de passe requis');
   }
 
+  // Validation de l'adresse
+  if (!formData.address_street || !formData.code_postal || !formData.localite) {
+    errors.push('Tous les champs d\'adresse sont requis');
+  }
+
   switch (userType) {
     case 'student':
       if (!formData.first_name || !formData.last_name) {
@@ -71,7 +76,10 @@ export const buildProfileData = (formData: any, userType: string, userId: string
     updated_at: new Date().toISOString(),
     is_private: true,
     accept_dm: false,
-    phone: formData.phone || ""
+    phone: formData.phone || "",
+    address_street: formData.address_street,
+    code_postal: formData.code_postal,
+    localite: formData.localite
   };
 
   switch (userType) {

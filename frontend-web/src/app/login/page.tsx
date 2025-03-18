@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { IntegrationProvider, INTEGRATION_CONFIGS, getProviderConfig } from '@/config/integration';
 import { validateFormByUserType, buildProfileData } from '@/utils/profileValidation';
 import { USER_TYPES } from '@/constants/userTypes';
+import { CityAutocomplete } from '@/components/CityAutocomplete';
 
 const FORM_STYLES = {
   container: "min-h-screen bg-gradient-to-b from-green-400 to-white flex items-center justify-center",
@@ -44,6 +45,7 @@ interface FormData {
   phone: string;
   first_name: string;
   last_name: string;
+  date_of_birth: string;
   educational_institution: string;
   level: string;
   company_name: string;
@@ -55,9 +57,8 @@ interface FormData {
   contact_person_phone: string;
   contact_preference: string;
   address_street: string;
-  address_city: string;
-  address_postal_code: string;
-  address_country: string;
+  code_postal: string;
+  localite: string;
   type: string;
   is_integration_admin: boolean;
 }
@@ -76,6 +77,7 @@ export default function Login() {
     phone: "",
     first_name: "",
     last_name: "",
+    date_of_birth: "",
     educational_institution: "",
     level: "",
     company_name: "",
@@ -87,9 +89,8 @@ export default function Login() {
     contact_person_phone: "",
     contact_preference: "",
     address_street: "",
-    address_city: "",
-    address_postal_code: "",
-    address_country: "",
+    code_postal: "",
+    localite: "",
     type: "",
     is_integration_admin: false
   });
@@ -413,18 +414,25 @@ export default function Login() {
       student: [
         { id: 'first_name', label: 'Prénom', type: 'text', required: true },
         { id: 'last_name', label: 'Nom', type: 'text', required: true },
+        { id: 'date_of_birth', label: 'Date de naissance', type: 'date', required: true },
+        { id: 'phone', label: 'Numéro de téléphone', type: 'tel', required: true },
         { id: 'educational_institution', label: 'Établissement', type: 'text', required: true },
-        { id: 'level', label: 'Niveau d\'études', type: 'text', required: true }
+        { id: 'level', label: 'Niveau d\'études', type: 'text', required: true },
+        { id: 'address_street', label: 'Rue et numéro', type: 'text', required: true }
       ],
       particulier: [
         { id: 'first_name', label: 'Prénom', type: 'text', required: true },
-        { id: 'last_name', label: 'Nom', type: 'text', required: true }
+        { id: 'last_name', label: 'Nom', type: 'text', required: true },
+        { id: 'phone', label: 'Numéro de téléphone', type: 'tel', required: true },
+        { id: 'address_street', label: 'Rue et numéro', type: 'text', required: true }
       ],
       professionnel: [
         { id: 'full_name', label: 'Nom public', type: 'text', required: true },
         { id: 'company_name', label: 'Dénomination sociale', type: 'text', required: true },
+        { id: 'phone', label: 'Numéro de téléphone', type: 'tel', required: true },
         { id: 'tax_number', label: 'Numéro de TVA', type: 'text', required: true },
-        { id: 'sector', label: 'Secteur d\'activité', type: 'text', required: true }
+        { id: 'sector', label: 'Secteur d\'activité', type: 'text', required: true },
+        { id: 'address_street', label: 'Rue et numéro', type: 'text', required: true }
       ],
       etablissement: [
         { id: 'full_name', label: 'Nom public', type: 'text', required: true },
@@ -432,7 +440,9 @@ export default function Login() {
         { id: 'tax_number', label: 'Numéro de TVA', type: 'text', required: true },
         { id: 'contact_person_name', label: 'Nom du contact', type: 'text', required: true },
         { id: 'contact_person_email', label: 'Email du contact', type: 'email', required: true },
-        { id: 'contact_person_phone', label: 'Téléphone du contact', type: 'tel', required: true }
+        { id: 'contact_person_phone', label: 'Téléphone du contact', type: 'tel', required: true },
+        { id: 'phone', label: 'Numéro de téléphone général', type: 'tel', required: true },
+        { id: 'address_street', label: 'Rue et numéro', type: 'text', required: true }
       ]
     };
 
@@ -477,6 +487,43 @@ export default function Login() {
             </div>
           ))}
 
+          {step === 4 && userType && (
+            <div>
+              <label className={FORM_STYLES.label}>
+                Adresse
+              </label>
+              <CityAutocomplete
+                onSelectCity={(postCode, city) => {
+                  setFormData(prev => ({
+                    ...prev,
+                    code_postal: postCode,
+                    localite: city
+                  }));
+                }}
+                initialPostCode={formData.code_postal}
+                initialCity={formData.localite}
+                className={FORM_STYLES.input}
+              />
+            </div>
+          )}
+
+          {step === 4 && userType === 'student' && (
+            <div className="mt-4">
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  name="age_confirmation"
+                  required
+                  className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                />
+                <span className="text-sm text-black">Je confirme avoir au moins 16 ans *</span>
+              </label>
+              <p className="text-xs text-gray-500 mt-1">
+                * Cette confirmation est obligatoire pour créer un compte étudiant
+              </p>
+            </div>
+          )}
+
           {step === 3 && (
             <button
               type="button"
@@ -506,6 +553,7 @@ export default function Login() {
       phone: "",
       first_name: "",
       last_name: "",
+      date_of_birth: "",
       educational_institution: "",
       level: "",
       company_name: "",
@@ -517,9 +565,8 @@ export default function Login() {
       contact_person_phone: "",
       contact_preference: "",
       address_street: "",
-      address_city: "",
-      address_postal_code: "",
-      address_country: "",
+      code_postal: "",
+      localite: "",
       type: "",
       is_integration_admin: false
     });
@@ -594,26 +641,21 @@ export default function Login() {
                   </p>
                 </>
               ) : (
-                <>
-                  {(step === 1 || step === 4) && (
-                    <p className="text-center text-sm text-black">
-                      Déjà un compte ?
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsLogin(true);
-                          setUserType(null);
-                          setError(null);
-                          setRetryCount(0);
-                        }}
-                        className={FORM_STYLES.link}
-                      >
-                        Se connecter
-                      </button>
-                    </p>
-                  )}
-                  {step === 4 && renderSubmitButton()}
-                </>
+                <p className="text-center text-sm text-black mt-4">
+                  Déjà un compte ?
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsLogin(true);
+                      setUserType(null);
+                      setError(null);
+                      setRetryCount(0);
+                    }}
+                    className={FORM_STYLES.link}
+                  >
+                    Se connecter
+                  </button>
+                </p>
               )}
             </form>
 

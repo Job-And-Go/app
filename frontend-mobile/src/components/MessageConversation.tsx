@@ -8,8 +8,10 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
 import { supabase } from '../lib/supabase';
+import MessageValidationError from './MessageValidationError';
 
 interface Message {
   id: string;
@@ -33,6 +35,7 @@ export default function MessageConversation({
 }: MessageConversationProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
+  const [validationError, setValidationError] = useState<string | null>(null);
   const flatListRef = useRef<FlatList>(null);
 
   useEffect(() => {
@@ -85,8 +88,40 @@ export default function MessageConversation({
     }
   };
 
+  const validateMessage = (content: string): { isValid: boolean; error?: string } => {
+    // Regex pour détecter les emails
+    const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
+    
+    // Regex pour détecter les numéros de téléphone (formats internationaux)
+    const phoneRegex = /(?:\+\d{1,3}[-. ]?)?\d{2,}[-. ]?\d{2,}[-. ]?\d{2,}[-. ]?\d{2,}/;
+    
+    // Regex pour détecter les liens
+    const urlRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+)/;
+
+    if (emailRegex.test(content)) {
+      return { isValid: false, error: "Les adresses email ne sont pas autorisées dans les messages." };
+    }
+
+    if (phoneRegex.test(content)) {
+      return { isValid: false, error: "Les numéros de téléphone ne sont pas autorisés dans les messages." };
+    }
+
+    if (urlRegex.test(content)) {
+      return { isValid: false, error: "Les liens ne sont pas autorisés dans les messages." };
+    }
+
+    return { isValid: true };
+  };
+
   const sendMessage = async () => {
     if (!newMessage.trim()) return;
+
+    // Valider le contenu du message
+    const validation = validateMessage(newMessage);
+    if (!validation.isValid) {
+      setValidationError(validation.error || "Message non valide");
+      return;
+    }
 
     const { error } = await supabase
       .from('messages')
@@ -100,7 +135,7 @@ export default function MessageConversation({
       ]);
 
     if (error) {
-      console.error('Erreur lors de l\'envoi du message:', error);
+      setValidationError("Erreur lors de l'envoi du message");
       return;
     }
 
@@ -166,6 +201,11 @@ export default function MessageConversation({
           <Text style={styles.sendButtonText}>Envoyer</Text>
         </TouchableOpacity>
       </View>
+
+      <MessageValidationError
+        error={validationError}
+        onClose={() => setValidationError(null)}
+      />
     </KeyboardAvoidingView>
   );
 }
