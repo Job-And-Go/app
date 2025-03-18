@@ -1,0 +1,15 @@
+[build]
+  base = "frontend-web"
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NEXT_USE_NETLIFY_EDGE = "true"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200 
