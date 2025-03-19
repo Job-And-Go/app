@@ -1,30 +1,54 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Optimisations pour Netlify
-  swcMinify: true,
-  optimizeFonts: true,
-  poweredByHeader: false,
   reactStrictMode: true,
   output: 'standalone',
 
+  // Configuration des images
   images: {
     unoptimized: true,
-    domains: ['api.jobandgo.fr'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'api.jobandgo.fr',
+      },
+    ],
+  },
+
+  // Configuration des en-têtes
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+        ],
+      },
+    ];
   },
 
   // Configuration webpack
-  webpack: (config, { isServer }) => {
-    // Optimisations des images
-    config.module.rules.push({
-      test: /\.(png|svg|jpg|jpeg|gif)$/i,
-      type: 'asset/resource',
-    });
-
-    // Optimisations des polices
-    config.module.rules.push({
-      test: /\.(woff|woff2|eot|ttf|otf)$/i,
-      type: 'asset/resource',
-    });
+  webpack: (config) => {
+    config.module.rules.push(
+      {
+        test: /\.(png|svg|jpg|jpeg|gif)$/i,
+        type: 'asset/resource',
+      },
+      {
+        test: /\.(woff|woff2|eot|ttf|otf)$/i,
+        type: 'asset/resource',
+      }
+    );
 
     return config;
   },
