@@ -5,6 +5,12 @@ const nextConfig = {
   optimizeFonts: true,
   poweredByHeader: false,
   reactStrictMode: true,
+  output: 'standalone',
+
+  images: {
+    unoptimized: true,
+    domains: ['api.jobandgo.fr'],
+  },
 
   // Configuration webpack
   webpack: (config, { isServer }) => {
@@ -23,7 +29,7 @@ const nextConfig = {
     return config;
   },
 
-  // Configuration existante
+  // Configuration des redirections API
   async rewrites() {
     return [
       {
