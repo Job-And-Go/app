@@ -6,21 +6,41 @@ import { useRouter } from 'next/navigation';
 import { IntegrationProvider, INTEGRATION_CONFIGS, getProviderConfig } from '@/config/integration';
 import { validateFormByUserType, buildProfileData } from '@/utils/profileValidation';
 import { USER_TYPES } from '@/constants/userTypes';
+import { CityAutocomplete } from '@/components/CityAutocomplete';
 
 const FORM_STYLES = {
-  container: "min-h-screen bg-gradient-to-b from-green-400 to-white flex items-center justify-center",
-  card: "bg-white p-8 rounded-lg shadow-xl w-96",
-  title: "text-2xl font-bold mb-6 text-center text-gray-900",
-  formGroup: "space-y-4",
-  label: "block text-sm font-medium text-gray-900",
-  input: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 text-black",
-  button: "w-full bg-green-400 text-white py-2 px-4 rounded-md hover:bg-green-500 transition-colors",
-  link: "ml-1 text-green-400 hover:text-green-500",
-  typeSelector: "flex gap-4 mb-6",
-  typeButton: "flex-1 p-4 rounded-lg border-2 border-gray-200 hover:border-green-400 transition-all cursor-pointer",
-  typeButtonActive: "flex-1 p-4 rounded-lg border-2 border-green-400 bg-green-50 transition-all cursor-pointer",
-  ssoButton: "w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors mb-2",
-  otherMethodsButton: "w-full bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600 transition-colors mt-4"
+  container: "min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50 flex items-center justify-center p-4",
+  card: "bg-white p-8 rounded-2xl shadow-2xl w-full max-w-[800px] border border-green-100",
+  title: "text-3xl font-bold mb-8 text-center text-gray-800",
+  formGroup: "space-y-6",
+  label: "block text-sm font-medium text-gray-700 mb-1",
+  input: "mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-gray-800 p-3 transition-all duration-200",
+  button: "w-full bg-green-500 text-white py-3 px-6 rounded-lg hover:bg-green-600 transition-all duration-200 font-medium text-lg shadow-md hover:shadow-lg",
+  link: "ml-1 text-green-600 hover:text-green-700 font-medium",
+  typeSelector: "grid grid-cols-1 md:grid-cols-2 gap-6 mb-8",
+  typeButton: "group flex flex-col items-center p-8 rounded-2xl border-2 border-gray-100 hover:border-green-500 transition-all duration-300 cursor-pointer hover:shadow-lg bg-white relative overflow-hidden hover:-translate-y-1",
+  typeButtonActive: "group flex flex-col items-center p-8 rounded-2xl border-2 border-green-500 bg-green-50 transition-all duration-300 cursor-pointer shadow-lg relative overflow-hidden -translate-y-1",
+  ssoButton: "w-full bg-white text-gray-800 py-3 px-6 rounded-lg hover:bg-gray-50 transition-all duration-200 font-medium border border-gray-200 shadow-sm hover:shadow-md mb-3",
+  otherMethodsButton: "w-full bg-gray-100 text-gray-800 py-3 px-6 rounded-lg hover:bg-gray-200 transition-all duration-200 font-medium mt-4",
+  stepIndicator: "relative mb-12 px-2",
+  stepProgress: "absolute top-[14px] left-0 h-1 bg-green-500 transition-all duration-500 ease-in-out",
+  stepBackground: "absolute top-[14px] left-0 h-1 w-full bg-gray-200",
+  stepContainer: "relative flex justify-between",
+  stepItem: "relative flex flex-col items-center",
+  stepNumber: "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium bg-white border-2 border-gray-300 text-gray-500 transition-all duration-300",
+  stepNumberActive: "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium bg-green-500 border-2 border-green-500 text-white transition-all duration-300",
+  stepNumberCompleted: "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium bg-green-500 border-2 border-green-500 text-white transition-all duration-300",
+  stepLabel: "absolute top-10 left-1/2 -translate-x-1/2 whitespace-nowrap text-sm text-gray-500 transition-all duration-300",
+  stepLabelActive: "absolute top-10 left-1/2 -translate-x-1/2 whitespace-nowrap text-sm font-medium text-green-600 transition-all duration-300",
+  backButton: "text-sm text-gray-600 hover:text-gray-800 mb-6 flex items-center gap-2",
+  benefitsList: "grid grid-cols-1 md:grid-cols-2 gap-4 mt-6",
+  benefitItem: "flex items-start gap-3 p-6 bg-white rounded-xl border-2 border-gray-100 hover:border-green-100 transition-all duration-200 shadow-sm hover:shadow-md",
+  benefitIcon: "text-green-500 w-8 h-8 shrink-0",
+  benefitText: "text-gray-700 text-lg",
+  error: "bg-red-50 text-red-600 p-4 rounded-lg mb-4 text-sm",
+  inputGroup: "space-y-2",
+  sectionTitle: "text-xl font-semibold text-gray-800 mb-6",
+  divider: "my-8 border-t border-gray-200"
 };
 
 interface FormData {
@@ -32,6 +52,7 @@ interface FormData {
   phone: string;
   first_name: string;
   last_name: string;
+  date_of_birth: string;
   educational_institution: string;
   level: string;
   company_name: string;
@@ -43,9 +64,8 @@ interface FormData {
   contact_person_phone: string;
   contact_preference: string;
   address_street: string;
-  address_city: string;
-  address_postal_code: string;
-  address_country: string;
+  code_postal: string;
+  localite: string;
   type: string;
   is_integration_admin: boolean;
 }
@@ -66,6 +86,7 @@ export default function Login() {
     // Champs étudiant
     first_name: "",
     last_name: "",
+    date_of_birth: "",
     educational_institution: "",
     level: "",
     // Champs professionnel
@@ -80,9 +101,8 @@ export default function Login() {
     // Champs particulier
     contact_preference: "",
     address_street: "",
-    address_city: "",
-    address_postal_code: "",
-    address_country: "",
+    code_postal: "",
+    localite: "",
     type: "",
     is_integration_admin: false
   });
@@ -187,92 +207,493 @@ export default function Login() {
     }
   };
 
-  const renderFormFields = () => {
-    if (step === 1) {
-      return (
-        <div className="space-y-4">
-          <h2 className="text-xl font-bold mb-4">Choisissez votre type de compte</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {USER_TYPES.map(type => (
-              <button
-                key={type.id}
-                onClick={() => {
-                  setUserType(type.id);
-                  setStep(2);
-                }}
-                className={`p-4 border rounded-lg text-left hover:border-green-500 transition-colors
-                  ${userType === type.id ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}
-              >
-                <div className="text-2xl mb-2">{type.icon}</div>
-                <div className="font-semibold">{type.label}</div>
-                <div className="text-sm text-gray-600">{type.description}</div>
-              </button>
-            ))}
-          </div>
-        </div>
-      );
-    }
-
-    const commonFields = [
-      { id: 'email', label: 'Email', type: 'email' },
-      { id: 'password', label: 'Mot de passe', type: 'password' },
-      { id: 'confirmPassword', label: 'Confirmer le mot de passe', type: 'password' },
-      { id: 'phone', label: 'Téléphone', type: 'tel' }
+  const renderStepIndicator = () => {
+    const steps = [
+      { number: 1, label: "Type de compte" },
+      { number: 2, label: "Avantages" },
+      { number: 3, label: "Informations de base" },
+      { number: 4, label: "Informations spécifiques" }
     ];
 
-    const typeSpecificFields = {
+    const progressWidth = ((step - 1) / (steps.length - 1)) * 100;
+
+    return (
+      <div className={FORM_STYLES.stepIndicator}>
+        <div className={FORM_STYLES.stepBackground} />
+        <div 
+          className={FORM_STYLES.stepProgress} 
+          style={{ width: `${progressWidth}%` }}
+        />
+        <div className={FORM_STYLES.stepContainer}>
+          {steps.map((s, index) => (
+            <div key={s.number} className={FORM_STYLES.stepItem}>
+              <div 
+                className={
+                  step > s.number 
+                    ? FORM_STYLES.stepNumberCompleted 
+                    : step === s.number 
+                    ? FORM_STYLES.stepNumberActive 
+                    : FORM_STYLES.stepNumber
+                }
+              >
+                {step > s.number ? (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : (
+                  s.number
+                )}
+              </div>
+              <span 
+                className={
+                  step >= s.number 
+                    ? FORM_STYLES.stepLabelActive 
+                    : FORM_STYLES.stepLabel
+                }
+              >
+                {s.label}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderBenefits = () => {
+    const benefits = {
       student: [
-        { id: 'first_name', label: 'Prénom', type: 'text' },
-        { id: 'last_name', label: 'Nom', type: 'text' },
-        { id: 'educational_institution', label: 'Établissement', type: 'text' },
-        { id: 'level', label: 'Niveau d\'études', type: 'text' }
+        {
+          icon: "👨‍🎓",
+          text: "Accès à toutes les offres d'emploi",
+          description: "Trouvez le job étudiant idéal parmi toutes nos offres"
+        },
+        {
+          icon: "📋",
+          text: "Suivi de vos candidatures",
+          description: "Gérez et suivez l'état de vos candidatures facilement"
+        },
+        {
+          icon: "🔔",
+          text: "Notifications en temps réel",
+          description: "Soyez alerté dès qu'une offre correspond à votre profil"
+        },
+        {
+          icon: "🤝",
+          text: "Mise en relation avec des employeurs",
+          description: "Échangez directement avec les recruteurs"
+        }
       ],
       particulier: [
-        { id: 'first_name', label: 'Prénom', type: 'text' },
-        { id: 'last_name', label: 'Nom', type: 'text' },
-        { id: 'contact_preference', label: 'Préférence de contact', type: 'text' }
+        {
+          icon: "📝",
+          text: "Publication d'offres d'emploi",
+          description: "Publiez vos offres en quelques clics"
+        },
+        {
+          icon: "📊",
+          text: "Gestion des candidatures",
+          description: "Suivez et gérez toutes vos candidatures reçues"
+        },
+        {
+          icon: "💬",
+          text: "Communication directe",
+          description: "Échangez facilement avec les candidats"
+        },
+        {
+          icon: "📱",
+          text: "Tableau de bord personnalisé",
+          description: "Visualisez toutes vos activités en un coup d'œil"
+        }
       ],
       professionnel: [
-        { id: 'full_name', label: 'Nom complet', type: 'text' },
-        { id: 'company_name', label: 'Nom de l\'entreprise', type: 'text' },
-        { id: 'tax_number', label: 'Numéro de TVA', type: 'text' },
-        { id: 'sector', label: 'Secteur d\'activité', type: 'text' }
+        {
+          icon: "⚡",
+          text: "Gestion complète des offres",
+          description: "Gérez vos offres d'emploi de A à Z"
+        },
+        {
+          icon: "📈",
+          text: "Analytics avancés",
+          description: "Suivez la performance de vos recrutements"
+        },
+        {
+          icon: "🔄",
+          text: "Intégration API",
+          description: "Connectez vos outils RH existants"
+        },
+        {
+          icon: "🎯",
+          text: "Support prioritaire",
+          description: "Bénéficiez d'une assistance dédiée"
+        }
       ],
       etablissement: [
-        { id: 'full_name', label: 'Nom complet', type: 'text' },
-        { id: 'company_name', label: 'Nom de l\'établissement', type: 'text' },
-        { id: 'contact_person_name', label: 'Nom du contact', type: 'text' },
-        { id: 'contact_person_email', label: 'Email du contact', type: 'email' }
+        {
+          icon: "👥",
+          text: "Gestion multi-utilisateurs",
+          description: "Gérez plusieurs comptes administrateurs"
+        },
+        {
+          icon: "🔑",
+          text: "Intégration SSO",
+          description: "Connexion unique avec vos systèmes"
+        },
+        {
+          icon: "📊",
+          text: "Tableau de bord institutionnel",
+          description: "Suivez l'activité de votre établissement"
+        },
+        {
+          icon: "💪",
+          text: "Support dédié",
+          description: "Une équipe dédiée à votre service"
+        }
       ]
     };
 
     return (
-      <div className="space-y-4">
-        <button 
-          onClick={() => setStep(1)} 
-          className="text-sm text-gray-600 hover:text-gray-800"
-        >
-          ← Retour au choix du type de compte
-        </button>
-        
-        {commonFields.concat(typeSpecificFields[userType as keyof typeof typeSpecificFields] || [])
-          .map(field => (
-            <div key={field.id}>
-              <label className="block text-sm font-medium text-gray-700">
-                {field.label}
-              </label>
+      <div className={FORM_STYLES.benefitsList}>
+        {benefits[userType as keyof typeof benefits]?.map((benefit, index) => (
+          <div key={index} className={FORM_STYLES.benefitItem}>
+            <span className="text-2xl" role="img" aria-label="icon">
+              {benefit.icon}
+            </span>
+            <div>
+              <h3 className="font-semibold text-gray-800 mb-1">{benefit.text}</h3>
+              <p className="text-gray-600">{benefit.description}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const renderFormFields = () => {
+    if (isLogin) {
+      return (
+        <div className="space-y-6">
+          <div className={FORM_STYLES.inputGroup}>
+            <label className={FORM_STYLES.label}>Email</label>
+            <input
+              type="email"
+              name="email"
+              placeholder="votre@email.com"
+              value={formData.email}
+              onChange={handleChange}
+              className={FORM_STYLES.input}
+              required
+            />
+          </div>
+          <div className={FORM_STYLES.inputGroup}>
+            <label className={FORM_STYLES.label}>Mot de passe</label>
+            <input
+              type="password"
+              name="password"
+              placeholder="••••••••"
+              value={formData.password}
+              onChange={handleChange}
+              className={FORM_STYLES.input}
+              required
+            />
+          </div>
+          {error && <div className={FORM_STYLES.error}>{error}</div>}
+          <button
+            type="submit"
+            className={FORM_STYLES.button}
+          >
+            Se connecter
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowOtherMethods(!showOtherMethods)}
+            className={FORM_STYLES.otherMethodsButton}
+          >
+            {showOtherMethods ? "← Retour à la connexion classique" : "Autres méthodes de connexion →"}
+          </button>
+          {showOtherMethods && (
+            <div className="space-y-3">
+              <button
+                type="button"
+                onClick={() => handleSSOLogin('google' as IntegrationProvider)}
+                className={FORM_STYLES.ssoButton}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <svg className="w-5 h-5" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"/>
+                  </svg>
+                  Se connecter avec Google
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSSOLogin('microsoft' as IntegrationProvider)}
+                className={FORM_STYLES.ssoButton}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <svg className="w-5 h-5" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M11.4,24H0l11.4-11.4L0,0h11.4l11.4,12L11.4,24z"/>
+                  </svg>
+                  Se connecter avec Microsoft
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={handleGuestLogin}
+                className={FORM_STYLES.ssoButton}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <svg className="w-5 h-5" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M12,2C6.48,2,2,6.48,2,12s4.48,10,10,10s10-4.48,10-10S17.52,2,12,2z M12,20c-4.41,0-8-3.59-8-8s3.59-8,8-8s8,3.59,8,8S16.41,20,12,20z"/>
+                  </svg>
+                  Continuer en tant qu'invité
+                </div>
+              </button>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    switch (step) {
+      case 1:
+        return (
+          <div className="space-y-6">
+            <h2 className={FORM_STYLES.sectionTitle}>Choisissez votre type de compte</h2>
+            <div className={FORM_STYLES.typeSelector}>
+              {USER_TYPES.map(type => (
+                <button
+                  key={type.id}
+                  onClick={() => {
+                    setUserType(type.id);
+                    setStep(2);
+                  }}
+                  className={userType === type.id ? FORM_STYLES.typeButtonActive : FORM_STYLES.typeButton}
+                >
+                  <div className="text-4xl mb-4 transform transition-transform duration-300 group-hover:scale-110">
+                    {type.icon}
+                  </div>
+                  <div className="font-bold text-xl mb-3 text-gray-800">
+                    {type.label}
+                  </div>
+                  <div className="text-gray-600 text-center">
+                    {type.description}
+                  </div>
+                  <div className={`absolute bottom-0 left-0 w-full h-1 bg-green-500 transform transition-transform duration-300 ${userType === type.id ? 'scale-x-100' : 'scale-x-0'} group-hover:scale-x-100`} />
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 2:
+        return (
+          <div className="space-y-6">
+            <button 
+              onClick={() => setStep(1)} 
+              className={FORM_STYLES.backButton}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Retour
+            </button>
+            <h2 className={FORM_STYLES.sectionTitle}>Avantages de votre compte</h2>
+            {renderBenefits()}
+            <button
+              onClick={() => setStep(3)}
+              className={FORM_STYLES.button}
+            >
+              Continuer →
+            </button>
+          </div>
+        );
+
+      case 3:
+        return (
+          <div className="space-y-6">
+            <button 
+              onClick={() => setStep(2)} 
+              className={FORM_STYLES.backButton}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Retour
+            </button>
+            <h2 className={FORM_STYLES.sectionTitle}>Informations de base</h2>
+            <div className={FORM_STYLES.inputGroup}>
+              <label className={FORM_STYLES.label}>Email</label>
               <input
-                type={field.type}
-                name={field.id}
-                value={formData[field.id as keyof typeof formData] as string}
+                type="email"
+                name="email"
+                placeholder="votre@email.com"
+                value={formData.email}
                 onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                className={FORM_STYLES.input}
                 required
               />
             </div>
-          ))}
-      </div>
-    );
+            <div className={FORM_STYLES.inputGroup}>
+              <label className={FORM_STYLES.label}>Mot de passe</label>
+              <input
+                type="password"
+                name="password"
+                placeholder="••••••••"
+                value={formData.password}
+                onChange={handleChange}
+                className={FORM_STYLES.input}
+                required
+              />
+            </div>
+            <div className={FORM_STYLES.inputGroup}>
+              <label className={FORM_STYLES.label}>Confirmer le mot de passe</label>
+              <input
+                type="password"
+                name="confirmPassword"
+                placeholder="••••••••"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                className={FORM_STYLES.input}
+                required
+              />
+            </div>
+            <div className={FORM_STYLES.inputGroup}>
+              <label className={FORM_STYLES.label}>Téléphone</label>
+              <input
+                type="tel"
+                name="phone"
+                placeholder="+32 XXX XX XX XX"
+                value={formData.phone}
+                onChange={handleChange}
+                className={FORM_STYLES.input}
+                required
+              />
+            </div>
+            {error && <div className={FORM_STYLES.error}>{error}</div>}
+            <button
+              onClick={() => setStep(4)}
+              className={FORM_STYLES.button}
+            >
+              Continuer →
+            </button>
+          </div>
+        );
+
+      case 4:
+        return (
+          <div className="space-y-6">
+            <button 
+              onClick={() => setStep(3)} 
+              className={FORM_STYLES.backButton}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Retour
+            </button>
+            <h2 className={FORM_STYLES.sectionTitle}>Informations spécifiques</h2>
+            {userType === 'student' && (
+              <>
+                <div className={FORM_STYLES.inputGroup}>
+                  <label className={FORM_STYLES.label}>Prénom</label>
+                  <input
+                    type="text"
+                    name="first_name"
+                    placeholder="Votre prénom"
+                    value={formData.first_name}
+                    onChange={handleChange}
+                    className={FORM_STYLES.input}
+                    required
+                  />
+                </div>
+                <div className={FORM_STYLES.inputGroup}>
+                  <label className={FORM_STYLES.label}>Nom</label>
+                  <input
+                    type="text"
+                    name="last_name"
+                    placeholder="Votre nom"
+                    value={formData.last_name}
+                    onChange={handleChange}
+                    className={FORM_STYLES.input}
+                    required
+                  />
+                </div>
+                <div className={FORM_STYLES.inputGroup}>
+                  <label className={FORM_STYLES.label}>Date de naissance</label>
+                  <input
+                    type="date"
+                    name="date_of_birth"
+                    value={formData.date_of_birth}
+                    onChange={handleChange}
+                    className={FORM_STYLES.input}
+                    required
+                  />
+                </div>
+                <div className={FORM_STYLES.inputGroup}>
+                  <label className={FORM_STYLES.label}>Établissement</label>
+                  <input
+                    type="text"
+                    name="educational_institution"
+                    placeholder="Nom de votre établissement"
+                    value={formData.educational_institution}
+                    onChange={handleChange}
+                    className={FORM_STYLES.input}
+                    required
+                  />
+                </div>
+                <div className={FORM_STYLES.inputGroup}>
+                  <label className={FORM_STYLES.label}>Niveau d'études</label>
+                  <input
+                    type="text"
+                    name="level"
+                    placeholder="Votre niveau d'études"
+                    value={formData.level}
+                    onChange={handleChange}
+                    className={FORM_STYLES.input}
+                    required
+                  />
+                </div>
+              </>
+            )}
+            
+            <div className={FORM_STYLES.inputGroup}>
+              <label className={FORM_STYLES.label}>Adresse</label>
+              <input
+                type="text"
+                name="address_street"
+                placeholder="Rue et numéro"
+                value={formData.address_street}
+                onChange={handleChange}
+                className={FORM_STYLES.input}
+                required
+              />
+              <CityAutocomplete
+                onSelectCity={(postCode: string, city: string) => {
+                  setFormData(prev => ({
+                    ...prev,
+                    code_postal: postCode,
+                    localite: city
+                  }));
+                }}
+                initialPostCode={formData.code_postal}
+                initialCity={formData.localite}
+                className={FORM_STYLES.input}
+              />
+            </div>
+            {error && <div className={FORM_STYLES.error}>{error}</div>}
+            <button
+              type="submit"
+              className={FORM_STYLES.button}
+            >
+              S'inscrire
+            </button>
+          </div>
+        );
+
+      default:
+        return null;
+    }
   };
 
   const resetForm = () => {
@@ -284,6 +705,7 @@ export default function Login() {
       phone: "",
       first_name: "",
       last_name: "",
+      date_of_birth: "",
       educational_institution: "",
       level: "",
       company_name: "",
@@ -295,9 +717,8 @@ export default function Login() {
       contact_person_phone: "",
       contact_preference: "",
       address_street: "",
-      address_city: "",
-      address_postal_code: "",
-      address_country: "",
+      code_postal: "",
+      localite: "",
       type: "",
       is_integration_admin: false
     });
@@ -312,33 +733,10 @@ export default function Login() {
           {isLogin ? "Connexion" : "Inscription"}
         </h2>
         
-        {!isLogin && renderFormFields()}
+        {!isLogin && renderStepIndicator()}
         
         <form onSubmit={handleAuth} className={FORM_STYLES.formGroup}>
           {renderFormFields()}
-
-          {!isLogin && userType === 'employer' && (
-            <div className="mt-4">
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  name="is_integration_admin"
-                  checked={formData.is_integration_admin}
-                  onChange={(e) => setFormData(prev => ({ ...prev, is_integration_admin: e.target.checked }))}
-                  className="rounded border-gray-300 text-green-600 focus:ring-green-500"
-                />
-                <span className="text-sm text-gray-700">Activer le mode admin ?</span>
-              </label>
-              <p className="text-xs text-gray-500 mt-1">
-                Le mode admin vous permettra d'intégrer l'application sur vos différentes plateformes (site web, intranet, applications mobiles, etc.). 
-                <a href="/admin_mode_information" className="text-green-500 hover:text-green-600">En savoir plus sur le mode admin</a>
-              </p>
-            </div>
-          )}
-
-          <button type="submit" className={FORM_STYLES.button}>
-            {isLogin ? "Se connecter" : "S'inscrire"}
-          </button>
 
           <p className="text-center text-sm text-gray-900">
             {isLogin ? "Pas encore de compte ?" : "Déjà un compte ?"}
@@ -347,6 +745,7 @@ export default function Login() {
               onClick={() => {
                 setIsLogin(!isLogin);
                 setUserType(null);
+                setStep(1);
               }}
               className={FORM_STYLES.link}
             >
@@ -354,14 +753,6 @@ export default function Login() {
             </button>
           </p>
         </form>
-
-        <button
-          type="button"
-          onClick={() => setShowOtherMethods(false)}
-          className={FORM_STYLES.otherMethodsButton}
-        >
-          Retour à la connexion classique
-        </button>
       </div>
     </div>
   );
