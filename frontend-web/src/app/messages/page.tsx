@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
@@ -22,7 +22,7 @@ interface Conversation {
   application_id?: string;
 }
 
-export default function MessagesPage() {
+function MessagesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const applicationId = searchParams?.get('application') ?? null;
@@ -223,5 +223,13 @@ export default function MessagesPage() {
         </div>
       </div>
     </>
+  );
+}
+
+export default function MessagesPage() {
+  return (
+    <Suspense fallback={<div>Chargement...</div>}>
+      <MessagesContent />
+    </Suspense>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import Layout from '@/components/Layout';
@@ -13,7 +13,7 @@ interface IntegrationDetails {
   documentation_url: string;
 }
 
-export default function IntegrationSuccess() {
+function IntegrationSuccessContent() {
   const searchParams = useSearchParams();
   const [details, setDetails] = useState<IntegrationDetails | null>(null);
   const platformId = searchParams?.get('id');
@@ -145,5 +145,13 @@ export default function IntegrationSuccess() {
         </div>
       </div>
     </Layout>
+  );
+}
+
+export default function IntegrationSuccess() {
+  return (
+    <Suspense fallback={<div>Chargement...</div>}>
+      <IntegrationSuccessContent />
+    </Suspense>
   );
 }
