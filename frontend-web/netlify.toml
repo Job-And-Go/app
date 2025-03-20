@@ -1,6 +1,6 @@
 [build]
   base = "frontend-web"
-  command = "npm run build"
+  command = "npm install && npm install --save-dev tailwindcss postcss autoprefixer && npm run build"
   publish = ".next"
   ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF ./frontend-web/"
 
@@ -26,4 +26,4 @@
     X-Frame-Options = "DENY"
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin" 
+    Referrer-Policy = "strict-origin-when-cross-origin"

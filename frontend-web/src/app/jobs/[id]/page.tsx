@@ -1,7 +1,7 @@
 'use client';
 
 import { supabase } from "@/lib/supabase";
-import { useEffect, useState, use } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from '@/components/Navbar';
 import FavoriteButton from '@/components/FavoriteButton';
@@ -35,9 +35,8 @@ type Application = {
   };
 };
 
-export default function JobDetails({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = use(params);
-  const { id } = resolvedParams;
+export default function JobDetails({ params }: { params: { id: string } }) {
+  const { id } = params;
   const router = useRouter();
   const [job, setJob] = useState<Job | null>(null);
   const [userProfile, setUserProfile] = useState<{
