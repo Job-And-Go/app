@@ -5,17 +5,17 @@ import "./globals.css";
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "StudentJob - Trouvez votre job étudiant",
+  title: "StuJob - Trouvez votre job étudiant",
   description: "La plateforme qui connecte les étudiants avec des opportunités d'emploi flexibles et enrichissantes",
   openGraph: {
-    title: "StudentJob - Trouvez votre job étudiant",
+    title: "StuJob - Trouvez votre job étudiant",
     description: "La plateforme qui connecte les étudiants avec des opportunités d'emploi flexibles et enrichissantes",
     images: [
       {
         url: "/images/og-image.jpg", // Image placeholder à ajouter
         width: 1200,
         height: 630,
-        alt: "StudentJob Preview"
+        alt: "StuJob Preview"
       }
     ]
   }
@@ -29,7 +29,7 @@ export default function RootLayout({
   return (
     <html lang="fr" className={inter.className}>
       <head>
-        <title>StudentJob - Trouvez votre job étudiant</title>
+        <title>StuJob - Trouvez votre job étudiant</title>
         <meta name="description" content="La plateforme qui connecte les étudiants avec des opportunités d'emploi flexibles et enrichissantes" />
       </head>
       <body>{children}</body>
