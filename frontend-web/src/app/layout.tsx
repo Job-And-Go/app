@@ -28,6 +28,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" className={inter.className}>
+      <head>
+        <title>StudentJob - Trouvez votre job étudiant</title>
+        <meta name="description" content="La plateforme qui connecte les étudiants avec des opportunités d'emploi flexibles et enrichissantes" />
+      </head>
       <body>{children}</body>
     </html>
   );
