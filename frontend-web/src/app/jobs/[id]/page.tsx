@@ -258,7 +258,7 @@ export default function JobDetails({ params }: { params: { id: string } }) {
               <span className="text-black">{job.location}</span>
               <span className="text-black">{job.salary}€</span>
               <span className={`px-2 py-1 rounded text-sm ${
-                job.is_open ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                job.is_open ? 'bg-theme-light text-theme-primary' : 'bg-red-100 text-red-800'
               }`}>
                 {job.is_open ? 'Ouvert' : 'Fermé'}
               </span>
@@ -291,22 +291,22 @@ export default function JobDetails({ params }: { params: { id: string } }) {
                           <>
                             <button
                               onClick={() => handleApplicationStatus(app.id, 'accepted')}
-                              className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+                              className="bg-theme-primary text-white px-3 py-1 rounded hover:bg-theme-hover"
                             >
                               Accepter
                             </button>
                             <button
                               onClick={() => handleApplicationStatus(app.id, 'rejected')}
-                              className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                              className="bg-theme-primary text-white px-3 py-1 rounded hover:bg-theme-hover"
                             >
                               Refuser
                             </button>
                           </>
                         )}
                         <span className={`px-2 py-1 rounded text-sm ${
-                          app.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                          app.status === 'accepted' ? 'bg-green-100 text-green-800' :
-                          'bg-red-100 text-red-800'
+                          app.status === 'pending' ? 'bg-theme-light text-theme-primary' :
+                          app.status === 'accepted' ? 'bg-theme-light text-theme-primary' :
+                          'bg-theme-primary hover:bg-theme-hover text-white'
                         }`}>
                           {app.status === 'pending' ? 'En attente' :
                            app.status === 'accepted' ? 'Acceptée' : 'Refusée'}
@@ -314,7 +314,7 @@ export default function JobDetails({ params }: { params: { id: string } }) {
                         {app.status === 'accepted' && (
                           <button
                             onClick={() => router.push(`/messages?application=${app.id}&user=${app.student.id}`)}
-                            className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+                            className="bg-theme-primary text-white px-3 py-1 rounded hover:bg-theme-hover"
                           >
                             Message
                           </button>
@@ -375,7 +375,7 @@ export default function JobDetails({ params }: { params: { id: string } }) {
             <div className="mt-4">
               <button
                 onClick={() => router.push(`/messages?application=${application.id}&user=${job.employer.id}`)}
-                className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors"
+                className="w-full bg-theme-primary text-white py-2 px-4 rounded hover:bg-theme-hover transition-colors"
               >
                 Contacter l'employeur
               </button>

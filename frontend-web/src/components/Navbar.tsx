@@ -73,7 +73,7 @@ const Logo = () => (
   <div className="flex items-center">
     <a href="/" className="cursor-pointer">
       <Image 
-        src="/logo.svg"
+        src="/images/logo.PNG"
         alt="StuJob Logo"
         width={120}
         height={40}
@@ -350,7 +350,7 @@ export default function Navbar({ user, userProfile, handleSignOut }: NavbarProps
               <div className="relative">
                 <button
                   onClick={() => user.email ? setShowProfileMenu(!showProfileMenu) : router.push('/login')}
-                  className="bg-[#3bee5e] text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-[#32d951] transition-colors flex items-center gap-2"
+                  className="bg-theme-primary text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-theme-hover transition-colors flex items-center gap-2"
                 >
                   {userProfile?.avatar_url && (
                     <img
@@ -380,7 +380,7 @@ export default function Navbar({ user, userProfile, handleSignOut }: NavbarProps
                 </a>
                 <a
                   href="/login" 
-                  className="bg-[#3bee5e] text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-[#32d951] transition-colors"
+                  className="bg-theme-primary text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-theme-hover transition-colors"
                 >
                   S'inscrire
                 </a>

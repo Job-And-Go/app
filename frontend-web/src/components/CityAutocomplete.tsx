@@ -76,7 +76,7 @@ export const CityAutocomplete = ({
             value={postCode}
             onChange={handlePostCodeChange}
             placeholder="Code postal"
-            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 ${className}`}
+            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-theme-primary focus:ring-theme-primary ${className}`}
           />
         </div>
         <div className="w-2/3">
@@ -85,7 +85,7 @@ export const CityAutocomplete = ({
             value={city}
             onChange={handleCityChange}
             placeholder="Localité"
-            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 ${className}`}
+            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-theme-primary focus:ring-theme-primary ${className}`}
           />
         </div>
       </div>

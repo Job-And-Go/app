@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase";
 import { useRouter } from 'next/navigation';
 import Navbar from './Navbar';
 import Notification from './Notification';
+import { ThemeProvider } from './ThemeProvider';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -37,7 +38,7 @@ export default function Layout({ children }: LayoutProps) {
   };
 
   return (
-    <>
+    <ThemeProvider>
       <Notification />
       <Navbar 
         user={user} 
@@ -45,6 +46,6 @@ export default function Layout({ children }: LayoutProps) {
         handleSignOut={handleSignOut} 
       />
       {children}
-    </>
+    </ThemeProvider>
   );
 } 

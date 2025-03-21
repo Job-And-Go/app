@@ -1,0 +1,81 @@
+/* Couleurs personnalisées par type d'utilisateur */
+
+/* Couleurs pour les étudiants */
+.student-theme {
+  --primary-color: #FF751F;
+  --primary-hover: #E66A1C;
+  --primary-light: #FFE4D1;
+}
+
+/* Couleurs pour les particuliers et professionnels */
+.professional-theme {
+  --primary-color: #87CEEB;
+  --primary-hover: #5FB8E8;
+  --primary-light: #E3F2FA;
+}
+
+/* Classes utilitaires */
+.bg-theme-primary {
+  background-color: var(--primary-color);
+}
+
+.text-theme-primary {
+  color: var(--primary-color);
+}
+
+.hover\:bg-theme-hover:hover {
+  background-color: var(--primary-hover);
+}
+
+.hover\:text-theme-hover:hover {
+  color: var(--primary-hover);
+}
+
+.border-theme-primary {
+  border-color: var(--primary-color);
+}
+
+.bg-theme-light {
+  background-color: var(--primary-light);
+}
+
+.focus\:ring-theme-primary:focus {
+  --tw-ring-color: var(--primary-color);
+}
+
+.focus\:border-theme-primary:focus {
+  border-color: var(--primary-color);
+}
+
+/* Remplacements des classes vertes */
+.student-theme .bg-green-500 {
+  background-color: var(--primary-color);
+}
+
+.student-theme .hover\:bg-green-600:hover {
+  background-color: var(--primary-hover);
+}
+
+.student-theme .text-green-600 {
+  color: var(--primary-color);
+}
+
+.student-theme .border-green-500 {
+  border-color: var(--primary-color);
+}
+
+.professional-theme .bg-green-500 {
+  background-color: var(--primary-color);
+}
+
+.professional-theme .hover\:bg-green-600:hover {
+  background-color: var(--primary-hover);
+}
+
+.professional-theme .text-green-600 {
+  color: var(--primary-color);
+}
+
+.professional-theme .border-green-500 {
+  border-color: var(--primary-color);
+} 

@@ -9,33 +9,33 @@ import { USER_TYPES } from '@/constants/userTypes';
 import { CityAutocomplete } from '@/components/CityAutocomplete';
 
 const FORM_STYLES = {
-  container: "min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50 flex items-center justify-center p-4",
-  card: "bg-white p-8 rounded-2xl shadow-2xl w-full max-w-[800px] border border-green-100",
+  container: "min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 flex items-center justify-center p-4",
+  card: "bg-white p-8 rounded-2xl shadow-2xl w-full max-w-[800px] border border-orange-100",
   title: "text-3xl font-bold mb-8 text-center text-gray-800",
   formGroup: "space-y-6",
   label: "block text-sm font-medium text-gray-700 mb-1",
-  input: "mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-gray-800 p-3 transition-all duration-200",
-  button: "w-full bg-green-500 text-white py-3 px-6 rounded-lg hover:bg-green-600 transition-all duration-200 font-medium text-lg shadow-md hover:shadow-lg",
-  link: "ml-1 text-green-600 hover:text-green-700 font-medium",
+  input: "mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 text-gray-800 p-3 transition-all duration-200",
+  button: "w-full bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 text-white py-3 px-6 rounded-lg hover:opacity-90 transition-all duration-200 font-medium text-lg shadow-md hover:shadow-lg",
+  link: "ml-1 text-orange-600 hover:text-orange-700 font-medium",
   typeSelector: "grid grid-cols-1 md:grid-cols-2 gap-6 mb-8",
-  typeButton: "group flex flex-col items-center p-8 rounded-2xl border-2 border-gray-100 hover:border-green-500 transition-all duration-300 cursor-pointer hover:shadow-lg bg-white relative overflow-hidden hover:-translate-y-1",
-  typeButtonActive: "group flex flex-col items-center p-8 rounded-2xl border-2 border-green-500 bg-green-50 transition-all duration-300 cursor-pointer shadow-lg relative overflow-hidden -translate-y-1",
+  typeButton: "group flex flex-col items-center p-8 rounded-2xl border-2 border-gray-100 hover:border-orange-500 transition-all duration-300 cursor-pointer hover:shadow-lg bg-white relative overflow-hidden hover:-translate-y-1",
+  typeButtonActive: "group flex flex-col items-center p-8 rounded-2xl border-2 border-orange-500 bg-gradient-to-r from-red-50 via-orange-50 to-yellow-50 transition-all duration-300 cursor-pointer shadow-lg relative overflow-hidden -translate-y-1",
   ssoButton: "w-full bg-white text-gray-800 py-3 px-6 rounded-lg hover:bg-gray-50 transition-all duration-200 font-medium border border-gray-200 shadow-sm hover:shadow-md mb-3",
   otherMethodsButton: "w-full bg-gray-100 text-gray-800 py-3 px-6 rounded-lg hover:bg-gray-200 transition-all duration-200 font-medium mt-4",
   stepIndicator: "relative mb-12 px-2",
-  stepProgress: "absolute top-[14px] left-0 h-1 bg-green-500 transition-all duration-500 ease-in-out",
+  stepProgress: "absolute top-[14px] left-0 h-1 bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 transition-all duration-500 ease-in-out",
   stepBackground: "absolute top-[14px] left-0 h-1 w-full bg-gray-200",
   stepContainer: "relative flex justify-between",
   stepItem: "relative flex flex-col items-center",
   stepNumber: "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium bg-white border-2 border-gray-300 text-gray-500 transition-all duration-300",
-  stepNumberActive: "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium bg-green-500 border-2 border-green-500 text-white transition-all duration-300",
-  stepNumberCompleted: "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium bg-green-500 border-2 border-green-500 text-white transition-all duration-300",
+  stepNumberActive: "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 border-2 border-orange-500 text-white transition-all duration-300",
+  stepNumberCompleted: "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 border-2 border-orange-500 text-white transition-all duration-300",
   stepLabel: "absolute top-10 left-1/2 -translate-x-1/2 whitespace-nowrap text-sm text-gray-500 transition-all duration-300",
-  stepLabelActive: "absolute top-10 left-1/2 -translate-x-1/2 whitespace-nowrap text-sm font-medium text-green-600 transition-all duration-300",
+  stepLabelActive: "absolute top-10 left-1/2 -translate-x-1/2 whitespace-nowrap text-sm font-medium text-orange-600 transition-all duration-300",
   backButton: "text-sm text-gray-600 hover:text-gray-800 mb-6 flex items-center gap-2",
   benefitsList: "grid grid-cols-1 md:grid-cols-2 gap-4 mt-6",
-  benefitItem: "flex items-start gap-3 p-6 bg-white rounded-xl border-2 border-gray-100 hover:border-green-100 transition-all duration-200 shadow-sm hover:shadow-md",
-  benefitIcon: "text-green-500 w-8 h-8 shrink-0",
+  benefitItem: "flex items-start gap-3 p-6 bg-white rounded-xl border-2 border-gray-100 hover:border-orange-100 transition-all duration-200 shadow-sm hover:shadow-md",
+  benefitIcon: "text-orange-500 w-8 h-8 shrink-0",
   benefitText: "text-gray-700 text-lg",
   error: "bg-red-50 text-red-600 p-4 rounded-lg mb-4 text-sm",
   inputGroup: "space-y-2",
@@ -465,10 +465,19 @@ export default function Login() {
                 <button
                   key={type.id}
                   onClick={() => {
-                    setUserType(type.id);
-                    setStep(2);
+                    if (!type.disabled) {
+                      setUserType(type.id);
+                      setStep(2);
+                    }
                   }}
-                  className={userType === type.id ? FORM_STYLES.typeButtonActive : FORM_STYLES.typeButton}
+                  className={`${
+                    type.disabled 
+                      ? "opacity-50 cursor-not-allowed" 
+                      : userType === type.id 
+                      ? FORM_STYLES.typeButtonActive 
+                      : FORM_STYLES.typeButton
+                  }`}
+                  disabled={type.disabled}
                 >
                   <div className="text-4xl mb-4 transform transition-transform duration-300 group-hover:scale-110">
                     {type.icon}
@@ -479,7 +488,9 @@ export default function Login() {
                   <div className="text-gray-600 text-center">
                     {type.description}
                   </div>
-                  <div className={`absolute bottom-0 left-0 w-full h-1 bg-green-500 transform transition-transform duration-300 ${userType === type.id ? 'scale-x-100' : 'scale-x-0'} group-hover:scale-x-100`} />
+                  {!type.disabled && (
+                    <div className={`absolute bottom-0 left-0 w-full h-1 bg-orange-500 transform transition-transform duration-300 ${userType === type.id ? 'scale-x-100' : 'scale-x-0'} group-hover:scale-x-100`} />
+                  )}
                 </button>
               ))}
             </div>

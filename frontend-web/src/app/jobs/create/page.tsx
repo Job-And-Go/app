@@ -3,9 +3,10 @@
 import { supabase } from "@/lib/supabase";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Navbar from '@/components/Navbar';
+import Layout from '@/components/Layout';
 import LocationSearch from '@/components/LocationSearch';
 import categoriesData from '@/data/categories.json';
+import Navbar from '@/components/Navbar';
 
 type Categories = {
   [key: string]: string[];
@@ -48,6 +49,12 @@ export default function CreateJob() {
             
           if (profileError) throw profileError;
           setUserProfile(profile);
+
+          // Vérifier le type d'utilisateur
+          if (profile && profile.type === 'student') {
+            router.push('/'); // Rediriger les étudiants vers la page d'accueil
+            return;
+          }
         }
       } catch (error) {
         console.error("Erreur lors de la récupération du profil:", error);
@@ -151,7 +158,7 @@ export default function CreateJob() {
               name="title"
               value={jobData.title}
               onChange={handleChange}
-              className="w-full p-2 border rounded focus:ring-2 focus:ring-[#3bee5e] text-black"
+              className="w-full p-2 border rounded focus:ring-2 focus:ring-theme-primary text-black"
               required
             />
           </div>
@@ -162,7 +169,7 @@ export default function CreateJob() {
               name="description"
               value={jobData.description}
               onChange={handleChange}
-              className="w-full p-2 border rounded focus:ring-2 focus:ring-[#3bee5e] h-32 text-black"
+              className="w-full p-2 border rounded focus:ring-2 focus:ring-theme-primary h-32 text-black"
               required
             />
           </div>
@@ -173,7 +180,7 @@ export default function CreateJob() {
               name="category"
               value={jobData.category}
               onChange={handleChange}
-              className="w-full p-2 border rounded focus:ring-2 focus:ring-[#3bee5e] text-black"
+              className="w-full p-2 border rounded focus:ring-2 focus:ring-theme-primary text-black"
               required
             >
               <option value="">Sélectionnez une catégorie</option>
@@ -192,7 +199,7 @@ export default function CreateJob() {
                 name="subcategory"
                 value={jobData.subcategory}
                 onChange={handleChange}
-                className="w-full p-2 border rounded focus:ring-2 focus:ring-[#3bee5e] text-black"
+                className="w-full p-2 border rounded focus:ring-2 focus:ring-theme-primary text-black"
                 required
               >
                 <option value="">Sélectionnez une sous-catégorie</option>
@@ -217,7 +224,7 @@ export default function CreateJob() {
               name="salary"
               value={jobData.salary}
               onChange={handleChange}
-              className="w-full p-2 border rounded focus:ring-2 focus:ring-[#3bee5e] text-black"
+              className="w-full p-2 border rounded focus:ring-2 focus:ring-theme-primary text-black"
               required
               min="0"
               step="0.01"
@@ -233,7 +240,7 @@ export default function CreateJob() {
               name="max_applications"
               value={jobData.max_applications}
               onChange={handleChange}
-              className="w-full p-2 border rounded focus:ring-2 focus:ring-[#3bee5e] text-black"
+              className="w-full p-2 border rounded focus:ring-2 focus:ring-theme-primary text-black"
               min="1"
               placeholder="Laissez vide pour illimité"
             />
@@ -241,7 +248,7 @@ export default function CreateJob() {
 
           <button
             type="submit"
-            className="w-full bg-[#3bee5e] text-black py-2 px-4 rounded hover:bg-[#32d951] transition-colors"
+            className="w-full bg-theme-primary text-white py-2 px-4 rounded hover:bg-theme-hover transition-colors"
           >
             Publier l'offre
           </button>

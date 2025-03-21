@@ -51,7 +51,7 @@ function IntegrationSuccessContent() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gradient-to-b from-green-400 to-white py-12">
+      <div className="min-h-screen bg-gradient-to-b from-red-400 via-orange-400 to-yellow-400 py-12">
         <div className="max-w-3xl mx-auto px-4">
           <div className="text-center mb-8">
             <div className="text-5xl mb-4">🎉</div>
@@ -67,7 +67,7 @@ function IntegrationSuccessContent() {
             <h2 className="text-xl font-semibold mb-4 text-black">Prochaines étapes</h2>
             <ol className="space-y-4">
               <li className="flex items-start">
-                <span className="flex-shrink-0 w-8 h-8 bg-green-100 text-green-500 rounded-full flex items-center justify-center mr-3">
+                <span className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-red-100 via-orange-100 to-yellow-100 text-orange-500 rounded-full flex items-center justify-center mr-3">
                   1
                 </span>
                 <div>
@@ -79,7 +79,7 @@ function IntegrationSuccessContent() {
                 </div>
               </li>
               <li className="flex items-start">
-                <span className="flex-shrink-0 w-8 h-8 bg-green-100 text-green-500 rounded-full flex items-center justify-center mr-3">
+                <span className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-red-100 via-orange-100 to-yellow-100 text-orange-500 rounded-full flex items-center justify-center mr-3">
                   2
                 </span>
                 <div>
@@ -91,7 +91,7 @@ function IntegrationSuccessContent() {
                 </div>
               </li>
               <li className="flex items-start">
-                <span className="flex-shrink-0 w-8 h-8 bg-green-100 text-green-500 rounded-full flex items-center justify-center mr-3">
+                <span className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-red-100 via-orange-100 to-yellow-100 text-orange-500 rounded-full flex items-center justify-center mr-3">
                   3
                 </span>
                 <div>
@@ -135,7 +135,7 @@ function IntegrationSuccessContent() {
                   href={details.documentation_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-500 hover:bg-green-600"
+                  className="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 hover:opacity-90"
                 >
                   Accéder à la documentation
                 </a>

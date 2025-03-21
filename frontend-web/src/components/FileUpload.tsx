@@ -82,7 +82,7 @@ export default function FileUpload({ onUploadComplete, existingUrl, type, userId
       <div
         {...getRootProps()}
         className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors
-          ${isDragActive ? 'border-green-400 bg-green-50' : 'border-gray-300 hover:border-green-400'}`}
+          ${isDragActive ? 'border-theme-primary bg-theme-light' : 'border-gray-300 hover:border-theme-primary'}`}
       >
         <input {...getInputProps()} />
         {uploading ? (

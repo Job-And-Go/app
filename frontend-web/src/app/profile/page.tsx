@@ -249,7 +249,7 @@ export default function Profile() {
                 name="educational_institution"
                 value={userProfile.educational_institution}
                 onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 text-black"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-theme-primary focus:ring-theme-primary text-black"
                 required
               />
             </div>
@@ -260,7 +260,7 @@ export default function Profile() {
                 name="level"
                 value={userProfile.level}
                 onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 text-black"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-theme-primary focus:ring-theme-primary text-black"
                 required
               />
             </div>
@@ -276,7 +276,7 @@ export default function Profile() {
                 name="contact_preference"
                 value={userProfile.contact_preference}
                 onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 text-black"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-theme-primary focus:ring-theme-primary text-black"
               />
             </div>
           </>
@@ -291,7 +291,7 @@ export default function Profile() {
                 name="full_name"
                 value={userProfile.full_name}
                 onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 text-black"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-theme-primary focus:ring-theme-primary text-black"
                 required
               />
             </div>
@@ -302,7 +302,7 @@ export default function Profile() {
                 name="company_name"
                 value={userProfile.company_name}
                 onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 text-black"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-theme-primary focus:ring-theme-primary text-black"
                 required
               />
             </div>
@@ -313,7 +313,7 @@ export default function Profile() {
                 name="tax_number"
                 value={userProfile.tax_number}
                 onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 text-black"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-theme-primary focus:ring-theme-primary text-black"
                 required
               />
             </div>
@@ -324,7 +324,7 @@ export default function Profile() {
                 name="sector"
                 value={userProfile.sector}
                 onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 text-black"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-theme-primary focus:ring-theme-primary text-black"
                 required
               />
             </div>
@@ -340,7 +340,7 @@ export default function Profile() {
                 name="full_name"
                 value={userProfile.full_name}
                 onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 text-black"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-theme-primary focus:ring-theme-primary text-black"
                 required
               />
             </div>
@@ -351,7 +351,7 @@ export default function Profile() {
                 name="company_name"
                 value={userProfile.company_name}
                 onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 text-black"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-theme-primary focus:ring-theme-primary text-black"
                 required
               />
             </div>
@@ -362,7 +362,7 @@ export default function Profile() {
                 name="contact_person_name"
                 value={userProfile.contact_person_name}
                 onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 text-black"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-theme-primary focus:ring-theme-primary text-black"
                 required
               />
             </div>
@@ -373,7 +373,7 @@ export default function Profile() {
                 name="contact_person_email"
                 value={userProfile.contact_person_email}
                 onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 text-black"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-theme-primary focus:ring-theme-primary text-black"
                 required
               />
             </div>
@@ -384,7 +384,7 @@ export default function Profile() {
                 name="contact_person_phone"
                 value={userProfile.contact_person_phone}
                 onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 text-black"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-theme-primary focus:ring-theme-primary text-black"
                 required
               />
             </div>
@@ -413,7 +413,7 @@ export default function Profile() {
                 name="first_name"
                 value={userProfile.first_name || ''}
                 onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 text-black"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-theme-primary focus:ring-theme-primary text-black"
                 required
               />
             </div>
@@ -424,7 +424,7 @@ export default function Profile() {
                 name="last_name"
                 value={userProfile.last_name || ''}
                 onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 text-black"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-theme-primary focus:ring-theme-primary text-black"
                 required
               />
             </div>
@@ -435,7 +435,7 @@ export default function Profile() {
                 type="text"
                 name="type"
                 value={userProfile.type}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 text-black"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-theme-primary focus:ring-theme-primary text-black"
                 disabled
               />
             </div>
@@ -447,7 +447,7 @@ export default function Profile() {
                 name="phone"
                 value={userProfile.phone}
                 onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 text-black"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-theme-primary focus:ring-theme-primary text-black"
               />
             </div>
 
@@ -459,7 +459,7 @@ export default function Profile() {
                 name="bio"
                 value={userProfile.bio}
                 onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-400 focus:ring-green-400 text-black"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-theme-primary focus:ring-theme-primary text-black"
                 rows={4}
               />
             </div>
@@ -545,14 +545,14 @@ export default function Profile() {
                             setShowAdminConfirmation(true);
                           }
                         }}
-                        className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                        className="rounded border-gray-300 text-theme-primary focus:ring-theme-primary"
                       />
                       <span className="text-sm text-gray-700">Activer le mode admin</span>
                     </label>
                     <p className="text-xs text-gray-500 mt-1">
                       Le mode admin permet d'intégrer l'application sur différentes plateformes et supports
                       <br />
-                      <a href="/admin_mode_information" className="text-green-500 hover:text-green-600">En savoir plus sur le mode admin</a>
+                      <a href="/admin_mode_information" className="text-theme-primary hover:text-theme-hover">En savoir plus sur le mode admin</a>
                     </p>
                   </div>
                 </div>
@@ -606,7 +606,7 @@ export default function Profile() {
                           setShowAdminConfirmation(false);
                         }
                       }}
-                      className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md"
+                      className="px-4 py-2 text-sm font-medium text-white bg-theme-primary hover:bg-theme-hover rounded-md"
                     >
                       Confirmer
                     </button>
@@ -617,7 +617,7 @@ export default function Profile() {
 
             <button
               type="submit"
-              className="w-full bg-green-400 text-white py-2 px-4 rounded-md hover:bg-green-500 transition-colors"
+              className="w-full bg-theme-primary text-white py-2 px-4 rounded-md hover:bg-theme-hover transition-colors"
             >
               Mettre à jour le profil
             </button>

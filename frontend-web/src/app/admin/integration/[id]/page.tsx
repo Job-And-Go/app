@@ -92,7 +92,7 @@ export default function IntegrationAdmin({ params }: { params: { id: string } })
             <select
               value={config.status}
               onChange={(e) => updateStatus(e.target.value as 'active' | 'suspended')}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-theme-primary focus:ring-theme-primary"
             >
               <option value="pending">En attente</option>
               <option value="active">Actif</option>
@@ -118,7 +118,7 @@ export default function IntegrationAdmin({ params }: { params: { id: string } })
                     ...config.configuration,
                     lti_version: e.target.value
                   })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-theme-primary focus:ring-theme-primary"
                 />
               </div>
               <div>
@@ -162,7 +162,7 @@ export default function IntegrationAdmin({ params }: { params: { id: string } })
                 ...config.configuration,
                 rate_limit: parseInt(e.target.value)
               })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-theme-primary focus:ring-theme-primary"
             />
           </div>
 
@@ -183,7 +183,7 @@ export default function IntegrationAdmin({ params }: { params: { id: string } })
                         [feature]: e.target.checked
                       }
                     })}
-                    className="rounded border-gray-300 text-green-600 shadow-sm focus:border-green-500 focus:ring-green-500"
+                    className="rounded border-gray-300 text-theme-primary shadow-sm focus:border-theme-primary focus:ring-theme-primary"
                   />
                   <span className="ml-2">{feature}</span>
                 </label>

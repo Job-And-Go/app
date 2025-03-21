@@ -53,35 +53,35 @@ export default function Home() {
                     return (
                       <>
                         <span className="block">Trouvez votre stage idéal</span>
-                        <span className="block text-[#3bee5e]">et lancez votre carrière</span>
+                        <span className="block text-theme-primary">et lancez votre carrière</span>
                       </>
                     );
                   case 'particulier':
                     return (
                       <>
                         <span className="block">Publiez vos annonces</span>
-                        <span className="block text-[#3bee5e]">en toute simplicité</span>
+                        <span className="block text-theme-primary">en toute simplicité</span>
                       </>
                     );
                   case 'professionnel':
                     return (
                       <>
                         <span className="block">Recrutez vos talents</span>
-                        <span className="block text-[#3bee5e]">de demain</span>
+                        <span className="block text-theme-primary">de demain</span>
                       </>
                     );
                   case 'etablissement':
                     return (
                       <>
                         <span className="block">Gérez vos étudiants</span>
-                        <span className="block text-[#3bee5e]">et leurs stages</span>
+                        <span className="block text-theme-primary">et leurs stages</span>
                       </>
                     );
                   default:
                     return (
                       <>
                         <span className="block">Bienvenue sur StuJob</span>
-                        <span className="block text-[#3bee5e]">La plateforme qui connecte les talents</span>
+                        <span className="block text-theme-primary">La plateforme qui connecte les talents</span>
                       </>
                     );
                 }
@@ -115,21 +115,21 @@ export default function Home() {
                             <input
                               type="text"
                               placeholder="Stage, entreprise ou secteur"
-                              className="flex-1 p-3 bg-gray-50 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#3bee5e] focus:border-transparent placeholder-gray-400"
+                              className="flex-1 p-3 bg-gray-50 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-theme-primary focus:border-transparent placeholder-gray-400"
                             />
                             <input
                               type="text"
                               placeholder="Ville ou région"
-                              className="flex-1 p-3 bg-gray-50 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#3bee5e] focus:border-transparent placeholder-gray-400"
+                              className="flex-1 p-3 bg-gray-50 text-gray-900 border border-gray-300 rounded-md focus:ring-2 focus:ring-theme-primary focus:border-transparent placeholder-gray-400"
                             />
-                            <button className="bg-[#3bee5e] text-white px-6 py-3 rounded-md hover:bg-[#32d951] transition-colors">
+                            <button className="bg-theme-primary text-white px-6 py-3 rounded-md hover:bg-theme-hover transition-colors">
                               Rechercher
                             </button>
                           </div>
                         </div>
                         <a
                           href="/jobs"
-                          className="bg-white text-[#3bee5e] border-2 border-[#3bee5e] px-8 py-4 rounded-md text-lg font-medium hover:bg-[#3bee5e] hover:text-white transition-colors shadow-lg transform hover:scale-105"
+                          className="bg-white text-theme-primary border-2 border-theme-primary px-8 py-4 rounded-md text-lg font-medium hover:bg-theme-primary hover:text-white transition-colors shadow-lg transform hover:scale-105"
                         >
                           Voir toutes les offres de stage
                         </a>
@@ -140,7 +140,7 @@ export default function Home() {
                       <div className="flex justify-center">
                         <a
                           href="/jobs/create"
-                          className="bg-[#3bee5e] text-white px-8 py-4 rounded-md text-lg font-medium hover:bg-[#32d951] transition-colors shadow-lg transform hover:scale-105 transition-transform"
+                          className="bg-theme-primary text-white px-8 py-4 rounded-md text-lg font-medium hover:bg-theme-hover transition-colors shadow-lg transform hover:scale-105 transition-transform"
                         >
                           Publier une annonce
                         </a>
@@ -151,13 +151,13 @@ export default function Home() {
                       <div className="flex justify-center space-x-4">
                         <a
                           href="/jobs/create"
-                          className="bg-[#3bee5e] text-white px-8 py-4 rounded-md text-lg font-medium hover:bg-[#32d951] transition-colors shadow-lg transform hover:scale-105 transition-transform"
+                          className="bg-theme-primary text-white px-8 py-4 rounded-md text-lg font-medium hover:bg-theme-hover transition-colors shadow-lg transform hover:scale-105 transition-transform"
                         >
                           Publier une offre
                         </a>
                         <a
                           href="/cv-database"
-                          className="bg-white text-[#3bee5e] border-2 border-[#3bee5e] px-8 py-4 rounded-md text-lg font-medium hover:bg-[#3bee5e] hover:text-white transition-colors shadow-lg transform hover:scale-105"
+                          className="bg-white text-theme-primary border-2 border-theme-primary px-8 py-4 rounded-md text-lg font-medium hover:bg-theme-primary hover:text-white transition-colors shadow-lg transform hover:scale-105"
                         >
                           Accéder à la CVthèque
                         </a>
@@ -168,13 +168,13 @@ export default function Home() {
                       <div className="flex justify-center space-x-4">
                         <a
                           href="/students"
-                          className="bg-[#3bee5e] text-white px-8 py-4 rounded-md text-lg font-medium hover:bg-[#32d951] transition-colors shadow-lg transform hover:scale-105 transition-transform"
+                          className="bg-theme-primary text-white px-8 py-4 rounded-md text-lg font-medium hover:bg-theme-hover transition-colors shadow-lg transform hover:scale-105 transition-transform"
                         >
                           Gérer mes étudiants
                         </a>
                         <a
                           href="/integration"
-                          className="bg-white text-[#3bee5e] border-2 border-[#3bee5e] px-8 py-4 rounded-md text-lg font-medium hover:bg-[#3bee5e] hover:text-white transition-colors shadow-lg transform hover:scale-105"
+                          className="bg-white text-theme-primary border-2 border-theme-primary px-8 py-4 rounded-md text-lg font-medium hover:bg-theme-primary hover:text-white transition-colors shadow-lg transform hover:scale-105"
                         >
                           Configurer l'API
                         </a>
@@ -185,7 +185,7 @@ export default function Home() {
                       <div className="flex justify-center">
                         <a
                           href="/login"
-                          className="bg-[#3bee5e] text-white px-8 py-4 rounded-md text-lg font-medium hover:bg-[#32d951] transition-colors shadow-lg transform hover:scale-105 transition-transform"
+                          className="bg-theme-primary text-white px-8 py-4 rounded-md text-lg font-medium hover:bg-theme-hover transition-colors shadow-lg transform hover:scale-105 transition-transform"
                         >
                           Commencer maintenant
                         </a>
@@ -291,7 +291,7 @@ export default function Home() {
 
                 return currentFeatures.map((feature, index) => (
                   <div key={index} className="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
-                    <div className="text-[#3bee5e] text-2xl mb-4">{feature.icon}</div>
+                    <div className="text-theme-primary text-2xl mb-4">{feature.icon}</div>
                     <h3 className="text-lg font-medium text-gray-900">{feature.title}</h3>
                     <p className="mt-2 text-gray-600">{feature.description}</p>
                   </div>
@@ -305,33 +305,33 @@ export default function Home() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
               <div>
-                <h4 className="text-sm font-semibold mb-4 text-[#3bee5e]">À propos</h4>
+                <h4 className="text-sm font-semibold mb-4 text-theme-primary">À propos</h4>
                 <ul className="space-y-2">
-                  <li><a href="#" className="text-gray-600 hover:text-[#3bee5e] text-sm transition-colors">Qui sommes-nous</a></li>
-                  <li><a href="#" className="text-gray-600 hover:text-[#3bee5e] text-sm transition-colors">Contact</a></li>
+                  <li><a href="#" className="text-gray-600 hover:text-theme-hover text-sm transition-colors">Qui sommes-nous</a></li>
+                  <li><a href="#" className="text-gray-600 hover:text-theme-hover text-sm transition-colors">Contact</a></li>
                 </ul>
               </div>
               <div>
-                <h4 className="text-sm font-semibold mb-4 text-[#3bee5e]">Ressources</h4>
+                <h4 className="text-sm font-semibold mb-4 text-theme-primary">Ressources</h4>
                 <ul className="space-y-2">
-                  <li><a href="#" className="text-gray-600 hover:text-[#3bee5e] text-sm transition-colors">Blog</a></li>
-                  <li><a href="#" className="text-gray-600 hover:text-[#3bee5e] text-sm transition-colors">
+                  <li><a href="#" className="text-gray-600 hover:text-theme-hover text-sm transition-colors">Blog</a></li>
+                  <li><a href="#" className="text-gray-600 hover:text-theme-hover text-sm transition-colors">
                     {userType === 'employer' ? "Guide recrutement" : "Guide stages"}
                   </a></li>
                 </ul>
               </div>
               <div>
-                <h4 className="text-sm font-semibold mb-4 text-[#3bee5e]">Légal</h4>
+                <h4 className="text-sm font-semibold mb-4 text-theme-primary">Légal</h4>
                 <ul className="space-y-2">
-                  <li><a href="#" className="text-gray-600 hover:text-[#3bee5e] text-sm transition-colors">Confidentialité</a></li>
-                  <li><a href="#" className="text-gray-600 hover:text-[#3bee5e] text-sm transition-colors">CGU</a></li>
+                  <li><a href="#" className="text-gray-600 hover:text-theme-hover text-sm transition-colors">Confidentialité</a></li>
+                  <li><a href="#" className="text-gray-600 hover:text-theme-hover text-sm transition-colors">CGU</a></li>
                 </ul>
               </div>
               <div>
-                <h4 className="text-sm font-semibold mb-4 text-[#3bee5e]">Suivez-nous</h4>
+                <h4 className="text-sm font-semibold mb-4 text-theme-primary">Suivez-nous</h4>
                 <ul className="space-y-2">
-                  <li><a href="#" className="text-gray-600 hover:text-[#3bee5e] text-sm transition-colors">LinkedIn</a></li>
-                  <li><a href="#" className="text-gray-600 hover:text-[#3bee5e] text-sm transition-colors">Twitter</a></li>
+                  <li><a href="#" className="text-gray-600 hover:text-theme-hover text-sm transition-colors">LinkedIn</a></li>
+                  <li><a href="#" className="text-gray-600 hover:text-theme-hover text-sm transition-colors">Twitter</a></li>
                 </ul>
               </div>
             </div>

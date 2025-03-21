@@ -19,8 +19,9 @@ export const USER_TYPES = [
   },
   {
     id: 'etablissement',
-    label: 'Établissement scolaire',
-    icon: '🏫',
-    description: 'Vous représentez un établissement d\'enseignement'
+    label: 'Administrateur',
+    icon: '⚙️',
+    description: 'Coming Soon',
+    disabled: true
   }
 ]; 

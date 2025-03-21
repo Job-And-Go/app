@@ -22,7 +22,7 @@ export const COLORS = {
   background: {
     light: '#F7FAFC',
     white: '#FFFFFF',
-    gradient: 'linear-gradient(180deg, #FF6B6B 0%, rgba(255, 169, 77, 0.2) 100%)'
+    gradient: 'linear-gradient(180deg, #FF6B6B 0%, #FFA94D 50%, #FFE066 100%)'
   },
   border: {
     light: '#E2E8F0',

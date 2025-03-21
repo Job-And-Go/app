@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
   titleAccent: {
     fontSize: 36,
     fontWeight: 'bold',
-    color: '#3bee5e',
+    color: '#FFA94D',
     textAlign: 'center',
   },
   subtitle: {
@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   searchButton: {
-    backgroundColor: '#3bee5e',
+    backgroundColor: '#FFA94D',
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',

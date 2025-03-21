@@ -154,7 +154,7 @@ export default function IntegrationPage() {
     return (
       <Layout>
         <div className="min-h-screen flex items-center justify-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-green-500"></div>
+          <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-theme-primary"></div>
         </div>
       </Layout>
     );
@@ -186,7 +186,7 @@ export default function IntegrationPage() {
                     key={num}
                     className={`w-8 h-8 rounded-full flex items-center justify-center ${
                       step >= num
-                        ? 'bg-green-500 text-white'
+                        ? 'bg-theme-primary text-white'
                         : 'bg-gray-200 text-black'
                     }`}
                   >
@@ -209,9 +209,9 @@ export default function IntegrationPage() {
                         setFormData({ ...formData, platform_type: platform.id });
                         setStep(2);
                       }}
-                      className={`p-6 border-2 rounded-lg text-left hover:border-green-500 transition-colors ${
+                      className={`p-6 border-2 rounded-lg text-left hover:border-theme-primary transition-colors ${
                         formData.platform_type === platform.id
-                          ? 'border-green-500 bg-green-50'
+                          ? 'border-theme-primary bg-theme-light'
                           : 'border-gray-200'
                       }`}
                     >
@@ -239,7 +239,7 @@ export default function IntegrationPage() {
                     required
                     value={formData.platform_name}
                     onChange={(e) => setFormData({ ...formData, platform_name: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-black"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-theme-primary focus:ring-theme-primary text-black"
                   />
                 </div>
 
@@ -252,7 +252,7 @@ export default function IntegrationPage() {
                     required
                     value={formData.platform_url}
                     onChange={(e) => setFormData({ ...formData, platform_url: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-black"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-theme-primary focus:ring-theme-primary text-black"
                     placeholder="https://moodle.votreecole.be"
                   />
                 </div>
@@ -267,7 +267,7 @@ export default function IntegrationPage() {
                       required
                       value={formData.contact_name}
                       onChange={(e) => setFormData({ ...formData, contact_name: e.target.value })}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-black"
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-theme-primary focus:ring-theme-primary text-black"
                     />
                   </div>
                   <div>
@@ -279,7 +279,7 @@ export default function IntegrationPage() {
                       required
                       value={formData.contact_email}
                       onChange={(e) => setFormData({ ...formData, contact_email: e.target.value })}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-black"
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-theme-primary focus:ring-theme-primary text-black"
                     />
                   </div>
                 </div>
@@ -291,7 +291,7 @@ export default function IntegrationPage() {
                   <select
                     value={formData.institution_size}
                     onChange={(e) => setFormData({ ...formData, institution_size: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-black"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-theme-primary focus:ring-theme-primary text-black"
                   >
                     <option value="">Sélectionnez une option</option>
                     <option value="small">Moins de 1000 étudiants</option>
@@ -310,7 +310,7 @@ export default function IntegrationPage() {
                   </button>
                   <button
                     type="submit"
-                    className="bg-green-500 text-white px-6 py-2 rounded-md hover:bg-green-600"
+                    className="bg-theme-primary text-white px-6 py-2 rounded-md hover:bg-theme-hover"
                   >
                     Envoyer la demande
                   </button>
