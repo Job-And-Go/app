@@ -7,6 +7,7 @@ import { IntegrationProvider, INTEGRATION_CONFIGS, getProviderConfig } from '@/c
 import { validateFormByUserType, buildProfileData } from '@/utils/profileValidation';
 import { USER_TYPES } from '@/constants/userTypes';
 import { CityAutocomplete } from '@/components/CityAutocomplete';
+import PhoneInput from '@/components/PhoneInput';
 
 const FORM_STYLES = {
   container: "min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 flex items-center justify-center p-4",
@@ -40,7 +41,12 @@ const FORM_STYLES = {
   error: "bg-red-50 text-red-600 p-4 rounded-lg mb-4 text-sm",
   inputGroup: "space-y-2",
   sectionTitle: "text-xl font-semibold text-gray-800 mb-6",
-  divider: "my-8 border-t border-gray-200"
+  divider: "my-8 border-t border-gray-200",
+  ageCertificationContainer: "p-4 bg-orange-50 border-2 border-orange-200 rounded-lg mt-6 mb-4",
+  ageCertificationLabel: "flex items-center text-base font-medium text-gray-700",
+  ageCertificationCheckbox: "w-5 h-5 mr-3 text-orange-500 border-orange-300 rounded focus:ring-orange-500",
+  buttonDisabled: "w-full bg-gradient-to-r from-orange-100 via-orange-200 to-orange-100 text-orange-500 py-3 px-6 rounded-lg cursor-not-allowed font-medium text-lg relative group border border-orange-200",
+  tooltip: "invisible group-hover:visible absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-lg text-sm whitespace-nowrap after:content-[''] after:absolute after:left-1/2 after:top-full after:-translate-x-1/2 after:border-8 after:border-transparent after:border-t-gray-800",
 };
 
 interface FormData {
@@ -68,6 +74,7 @@ interface FormData {
   localite: string;
   type: string;
   is_integration_admin: boolean;
+  age_certification: boolean;
 }
 
 export default function Login() {
@@ -104,61 +111,97 @@ export default function Login() {
     code_postal: "",
     localite: "",
     type: "",
-    is_integration_admin: false
+    is_integration_admin: false,
+    age_certification: false
   });
   const [error, setError] = useState<string | null>(null);
 
+  // Fonction pour calculer l'âge
+  const calculateAge = (birthDate: string): number => {
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    
+    return age;
+  };
+
+  // Fonction pour vérifier si l'utilisateur a 15 ans ou plus
+  const isOldEnough = (birthDate: string): boolean => {
+    return calculateAge(birthDate) >= 15;
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target;
+    
+    if (name === 'code_postal') {
+      // Ne garder que les chiffres pour le code postal
+      const numericValue = value.replace(/\D/g, '');
+      setFormData(prev => ({ ...prev, [name]: numericValue }));
+      return;
+    }
+
+    const newValue = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
+    setFormData(prev => ({ ...prev, [name]: newValue }));
   };
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    try {
-      if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
-          email: formData.email,
-          password: formData.password,
-        });
-        if (error) throw error;
-        router.push('/');
-      } else {
-        if (!userType) {
-          throw new Error('Veuillez sélectionner un type de compte');
+    setError(null);
+
+    if (!isLogin) {
+      // Vérification de l'âge pour les étudiants
+      if (userType === 'student') {
+        if (!formData.date_of_birth || !isOldEnough(formData.date_of_birth)) {
+          setError('Vous devez avoir au moins 15 ans pour vous inscrire.');
+          return;
         }
-
-        // Validation des champs spécifiques selon le type
-        const validationErrors = validateFormByUserType(formData, userType);
-        if (validationErrors.length > 0) {
-          throw new Error(validationErrors.join('\n'));
+        if (!formData.age_certification) {
+          setError('Vous devez certifier avoir au moins 15 ans.');
+          return;
         }
-
-        // Inscription de l'utilisateur
-        const { data: authData, error: signUpError } = await supabase.auth.signUp({
-          email: formData.email,
-          password: formData.password,
-        });
-
-        if (signUpError) throw signUpError;
-        if (!authData.user) throw new Error('Erreur lors de la création du compte');
-
-        // Création du profil avec les champs spécifiques au type
-        const profileData = buildProfileData(formData, userType, authData.user.id);
-
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert(profileData);
-
-        if (profileError) throw profileError;
-        
-        setIsLogin(true);
-        resetForm();
       }
-    } catch (error: any) {
-      console.error("Erreur:", error.message);
-      setError(error.message);
+      if (!userType) {
+        throw new Error('Veuillez sélectionner un type de compte');
+      }
+
+      // Validation des champs spécifiques selon le type
+      const validationErrors = validateFormByUserType(formData, userType);
+      if (validationErrors.length > 0) {
+        throw new Error(validationErrors.join('\n'));
+      }
+
+      // Inscription de l'utilisateur
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (signUpError) throw signUpError;
+      if (!authData.user) throw new Error('Erreur lors de la création du compte');
+
+      // Création du profil avec les champs spécifiques au type
+      const profileData = buildProfileData(formData, userType, authData.user.id);
+
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert(profileData);
+
+      if (profileError) throw profileError;
+      
+      setIsLogin(true);
+      resetForm();
+    } else {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
+      if (error) throw error;
+      router.push('/');
     }
   };
 
@@ -209,10 +252,10 @@ export default function Login() {
 
   const renderStepIndicator = () => {
     const steps = [
-      { number: 1, label: "Type de compte" },
-      { number: 2, label: "Avantages" },
-      { number: 3, label: "Informations de base" },
-      { number: 4, label: "Informations spécifiques" }
+      { number: 1 },
+      { number: 2 },
+      { number: 3 },
+      { number: 4 }
     ];
 
     const progressWidth = ((step - 1) / (steps.length - 1)) * 100;
@@ -244,15 +287,6 @@ export default function Login() {
                   s.number
                 )}
               </div>
-              <span 
-                className={
-                  step >= s.number 
-                    ? FORM_STYLES.stepLabelActive 
-                    : FORM_STYLES.stepLabel
-                }
-              >
-                {s.label}
-              </span>
             </div>
           ))}
         </div>
@@ -415,26 +449,26 @@ export default function Login() {
             <div className="space-y-3">
               <button
                 type="button"
-                onClick={() => handleSSOLogin('google' as IntegrationProvider)}
-                className={FORM_STYLES.ssoButton}
+                className={`${FORM_STYLES.ssoButton} opacity-60 cursor-not-allowed`}
+                disabled
               >
                 <div className="flex items-center justify-center gap-2">
                   <svg className="w-5 h-5" viewBox="0 0 24 24">
                     <path fill="currentColor" d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"/>
                   </svg>
-                  Se connecter avec Google
+                  Coming Soon
                 </div>
               </button>
               <button
                 type="button"
-                onClick={() => handleSSOLogin('microsoft' as IntegrationProvider)}
-                className={FORM_STYLES.ssoButton}
+                className={`${FORM_STYLES.ssoButton} opacity-60 cursor-not-allowed`}
+                disabled
               >
                 <div className="flex items-center justify-center gap-2">
                   <svg className="w-5 h-5" viewBox="0 0 24 24">
                     <path fill="currentColor" d="M11.4,24H0l11.4-11.4L0,0h11.4l11.4,12L11.4,24z"/>
                   </svg>
-                  Se connecter avec Microsoft
+                  Coming Soon
                 </div>
               </button>
               <button
@@ -571,12 +605,9 @@ export default function Login() {
             </div>
             <div className={FORM_STYLES.inputGroup}>
               <label className={FORM_STYLES.label}>Téléphone</label>
-              <input
-                type="tel"
-                name="phone"
-                placeholder="+32 XXX XX XX XX"
+              <PhoneInput
                 value={formData.phone}
-                onChange={handleChange}
+                onChange={(value) => setFormData(prev => ({ ...prev, phone: value }))}
                 className={FORM_STYLES.input}
                 required
               />
@@ -679,26 +710,77 @@ export default function Login() {
                 className={FORM_STYLES.input}
                 required
               />
-              <CityAutocomplete
-                onSelectCity={(postCode: string, city: string) => {
-                  setFormData(prev => ({
-                    ...prev,
-                    code_postal: postCode,
-                    localite: city
-                  }));
-                }}
-                initialPostCode={formData.code_postal}
-                initialCity={formData.localite}
-                className={FORM_STYLES.input}
-              />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <input
+                    type="text"
+                    name="code_postal"
+                    placeholder="Code postal"
+                    value={formData.code_postal}
+                    onChange={handleChange}
+                    className={FORM_STYLES.input}
+                    required
+                    maxLength={4}
+                    pattern="[0-9]*"
+                    inputMode="numeric"
+                  />
+                </div>
+                <div>
+                  <input
+                    type="text"
+                    name="localite"
+                    placeholder="Localité"
+                    value={formData.localite}
+                    onChange={handleChange}
+                    className={FORM_STYLES.input}
+                    required
+                  />
+                </div>
+              </div>
             </div>
+            {userType === 'student' && (
+              <div className={FORM_STYLES.ageCertificationContainer}>
+                <label className={FORM_STYLES.ageCertificationLabel}>
+                  <input
+                    type="checkbox"
+                    name="age_certification"
+                    checked={formData.age_certification}
+                    onChange={handleChange}
+                    disabled={!formData.date_of_birth || !isOldEnough(formData.date_of_birth)}
+                    className={FORM_STYLES.ageCertificationCheckbox}
+                    required
+                  />
+                  Je certifie avoir au moins 15 ans
+                </label>
+                {formData.date_of_birth && !isOldEnough(formData.date_of_birth) && (
+                  <p className="text-red-500 text-sm mt-2">
+                    Vous devez avoir au moins 15 ans pour vous inscrire.
+                  </p>
+                )}
+              </div>
+            )}
             {error && <div className={FORM_STYLES.error}>{error}</div>}
-            <button
-              type="submit"
-              className={FORM_STYLES.button}
-            >
-              S'inscrire
-            </button>
+            {userType === 'student' && (!formData.date_of_birth || !isOldEnough(formData.date_of_birth) || !formData.age_certification) ? (
+              <button
+                type="button"
+                className={FORM_STYLES.buttonDisabled}
+                onClick={(e) => e.preventDefault()}
+              >
+                Veuillez confirmer votre âge
+                <div className={FORM_STYLES.tooltip}>
+                  {!formData.date_of_birth && "Veuillez renseigner votre date de naissance"}
+                  {formData.date_of_birth && !isOldEnough(formData.date_of_birth) && "Vous devez avoir au moins 15 ans"}
+                  {formData.date_of_birth && isOldEnough(formData.date_of_birth) && !formData.age_certification && "Veuillez cocher la case de certification d'âge"}
+                </div>
+              </button>
+            ) : (
+              <button
+                type="submit"
+                className={FORM_STYLES.button}
+              >
+                S'inscrire
+              </button>
+            )}
           </div>
         );
 
@@ -731,7 +813,8 @@ export default function Login() {
       code_postal: "",
       localite: "",
       type: "",
-      is_integration_admin: false
+      is_integration_admin: false,
+      age_certification: false
     });
     setUserType(null);
     setError(null);
