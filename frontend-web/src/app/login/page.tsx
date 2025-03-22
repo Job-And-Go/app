@@ -62,19 +62,23 @@ interface FormData {
   educational_institution: string;
   level: string;
   company_name: string;
-  contact_name: string;
-  tax_number: string;
+  company_email: string;
   sector: string;
+  tax_number: string;
+  contact_name: string;
   contact_person_name: string;
+  contact_person_role: string;
   contact_person_email: string;
   contact_person_phone: string;
-  contact_preference: string;
   address_street: string;
+  address_country: string;
   code_postal: string;
   localite: string;
   type: string;
   is_integration_admin: boolean;
   age_certification: boolean;
+  study_year: string;
+  study_field: string;
 }
 
 export default function Login() {
@@ -87,37 +91,36 @@ export default function Login() {
     email: "",
     password: "",
     confirmPassword: "",
-    // Champs communs
     full_name: "",
     phone: "",
-    // Champs étudiant
     first_name: "",
     last_name: "",
     date_of_birth: "",
     educational_institution: "",
     level: "",
-    // Champs professionnel
     company_name: "",
-    contact_name: "",
-    tax_number: "",
+    company_email: "",
     sector: "",
-    // Champs établissement
+    tax_number: "",
+    contact_name: "",
     contact_person_name: "",
+    contact_person_role: "",
     contact_person_email: "",
     contact_person_phone: "",
-    // Champs particulier
-    contact_preference: "",
     address_street: "",
+    address_country: "",
     code_postal: "",
     localite: "",
     type: "",
     is_integration_admin: false,
-    age_certification: false
+    age_certification: false,
+    study_year: "",
+    study_field: ""
   });
   const [error, setError] = useState<string | null>(null);
+  const [isOver15, setIsOver15] = useState(false);
 
-  // Fonction pour calculer l'âge
-  const calculateAge = (birthDate: string): number => {
+  const calculateAge = (birthDate: string) => {
     const today = new Date();
     const birth = new Date(birthDate);
     let age = today.getFullYear() - birth.getFullYear();
@@ -130,11 +133,6 @@ export default function Login() {
     return age;
   };
 
-  // Fonction pour vérifier si l'utilisateur a 15 ans ou plus
-  const isOldEnough = (birthDate: string): boolean => {
-    return calculateAge(birthDate) >= 15;
-  };
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     
@@ -143,6 +141,15 @@ export default function Login() {
       const numericValue = value.replace(/\D/g, '');
       setFormData(prev => ({ ...prev, [name]: numericValue }));
       return;
+    }
+
+    if (name === 'date_of_birth') {
+      const age = calculateAge(value);
+      setIsOver15(age >= 15);
+      if (age < 15) {
+        setFormData(prev => ({ ...prev, [name]: value, age_certification: false }));
+        return;
+      }
     }
 
     const newValue = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
@@ -156,7 +163,7 @@ export default function Login() {
     if (!isLogin) {
       // Vérification de l'âge pour les étudiants
       if (userType === 'student') {
-        if (!formData.date_of_birth || !isOldEnough(formData.date_of_birth)) {
+        if (!formData.date_of_birth || !isOver15) {
           setError('Vous devez avoir au moins 15 ans pour vous inscrire.');
           return;
         }
@@ -638,148 +645,469 @@ export default function Login() {
             {userType === 'student' && (
               <>
                 <div className={FORM_STYLES.inputGroup}>
-                  <label className={FORM_STYLES.label}>Prénom</label>
-                  <input
-                    type="text"
-                    name="first_name"
-                    placeholder="Votre prénom"
-                    value={formData.first_name}
-                    onChange={handleChange}
-                    className={FORM_STYLES.input}
-                    required
-                  />
+                  <h3 className="text-lg font-medium text-gray-800 mb-4">Informations personnelles</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className={FORM_STYLES.label}>Prénom</label>
+                      <input
+                        type="text"
+                        name="first_name"
+                        placeholder="Votre prénom"
+                        value={formData.first_name}
+                        onChange={handleChange}
+                        className={FORM_STYLES.input}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className={FORM_STYLES.label}>Nom</label>
+                      <input
+                        type="text"
+                        name="last_name"
+                        placeholder="Votre nom"
+                        value={formData.last_name}
+                        onChange={handleChange}
+                        className={FORM_STYLES.input}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className={FORM_STYLES.label}>Date de naissance</label>
+                      <input
+                        type="date"
+                        name="date_of_birth"
+                        value={formData.date_of_birth}
+                        onChange={handleChange}
+                        className={FORM_STYLES.input}
+                        required
+                      />
+                    </div>
+                  </div>
                 </div>
+
                 <div className={FORM_STYLES.inputGroup}>
-                  <label className={FORM_STYLES.label}>Nom</label>
-                  <input
-                    type="text"
-                    name="last_name"
-                    placeholder="Votre nom"
-                    value={formData.last_name}
-                    onChange={handleChange}
-                    className={FORM_STYLES.input}
-                    required
-                  />
+                  <h3 className="text-lg font-medium text-gray-800 mb-4">Adresse</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className={FORM_STYLES.label}>Rue et numéro</label>
+                      <input
+                        type="text"
+                        name="address_street"
+                        placeholder="Rue et numéro"
+                        value={formData.address_street}
+                        onChange={handleChange}
+                        className={FORM_STYLES.input}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className={FORM_STYLES.label}>Pays</label>
+                      <input
+                        type="text"
+                        name="address_country"
+                        placeholder="Pays"
+                        value={formData.address_country}
+                        onChange={handleChange}
+                        className={FORM_STYLES.input}
+                        required
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className={FORM_STYLES.label}>Code postal</label>
+                        <input
+                          type="text"
+                          name="code_postal"
+                          placeholder="Code postal"
+                          value={formData.code_postal}
+                          onChange={handleChange}
+                          className={FORM_STYLES.input}
+                          required
+                          maxLength={4}
+                          pattern="[0-9]*"
+                          inputMode="numeric"
+                        />
+                      </div>
+                      <div>
+                        <label className={FORM_STYLES.label}>Localité</label>
+                        <input
+                          type="text"
+                          name="localite"
+                          placeholder="Localité"
+                          value={formData.localite}
+                          onChange={handleChange}
+                          className={FORM_STYLES.input}
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
+
                 <div className={FORM_STYLES.inputGroup}>
-                  <label className={FORM_STYLES.label}>Date de naissance</label>
-                  <input
-                    type="date"
-                    name="date_of_birth"
-                    value={formData.date_of_birth}
-                    onChange={handleChange}
-                    className={FORM_STYLES.input}
-                    required
-                  />
+                  <h3 className="text-lg font-medium text-gray-800 mb-4">Informations académiques</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className={FORM_STYLES.label}>Établissement</label>
+                      <input
+                        type="text"
+                        name="educational_institution"
+                        placeholder="Nom de votre établissement"
+                        value={formData.educational_institution}
+                        onChange={handleChange}
+                        className={FORM_STYLES.input}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className={FORM_STYLES.label}>Niveau d'études</label>
+                      <input
+                        type="text"
+                        name="level"
+                        placeholder="Votre niveau d'études"
+                        value={formData.level}
+                        onChange={handleChange}
+                        className={FORM_STYLES.input}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className={FORM_STYLES.label}>Année d'études</label>
+                      <input
+                        type="text"
+                        name="study_year"
+                        placeholder="Votre année d'études"
+                        value={formData.study_year}
+                        onChange={handleChange}
+                        className={FORM_STYLES.input}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className={FORM_STYLES.label}>Domaine d'études</label>
+                      <input
+                        type="text"
+                        name="study_field"
+                        placeholder="Votre domaine d'études"
+                        value={formData.study_field}
+                        onChange={handleChange}
+                        className={FORM_STYLES.input}
+                        required
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div className={FORM_STYLES.inputGroup}>
-                  <label className={FORM_STYLES.label}>Établissement</label>
-                  <input
-                    type="text"
-                    name="educational_institution"
-                    placeholder="Nom de votre établissement"
-                    value={formData.educational_institution}
-                    onChange={handleChange}
-                    className={FORM_STYLES.input}
-                    required
-                  />
+
+                <div className={FORM_STYLES.ageCertificationContainer}>
+                  <label className={`${FORM_STYLES.ageCertificationLabel} ${!isOver15 ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                    <input
+                      type="checkbox"
+                      name="age_certification"
+                      checked={formData.age_certification}
+                      onChange={handleChange}
+                      className={FORM_STYLES.ageCertificationCheckbox}
+                      disabled={!isOver15}
+                    />
+                    Je certifie avoir au moins 15 ans
+                  </label>
                 </div>
-                <div className={FORM_STYLES.inputGroup}>
-                  <label className={FORM_STYLES.label}>Niveau d'études</label>
-                  <input
-                    type="text"
-                    name="level"
-                    placeholder="Votre niveau d'études"
-                    value={formData.level}
-                    onChange={handleChange}
-                    className={FORM_STYLES.input}
-                    required
-                  />
-                </div>
+
+                {error && <div className={FORM_STYLES.error}>{error}</div>}
+                <button
+                  type="submit"
+                  className={`${FORM_STYLES.button} ${(!isOver15 || !formData.age_certification) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  disabled={!isOver15 || !formData.age_certification}
+                >
+                  {(!isOver15 || !formData.age_certification) ? 'Veuillez confirmer votre âge' : "S'inscrire"}
+                </button>
               </>
             )}
-            
-            <div className={FORM_STYLES.inputGroup}>
-              <label className={FORM_STYLES.label}>Adresse</label>
-              <input
-                type="text"
-                name="address_street"
-                placeholder="Rue et numéro"
-                value={formData.address_street}
-                onChange={handleChange}
-                className={FORM_STYLES.input}
-                required
-              />
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <input
-                    type="text"
-                    name="code_postal"
-                    placeholder="Code postal"
-                    value={formData.code_postal}
-                    onChange={handleChange}
-                    className={FORM_STYLES.input}
-                    required
-                    maxLength={4}
-                    pattern="[0-9]*"
-                    inputMode="numeric"
-                  />
+            {userType === 'professionnel' && (
+              <>
+                <div className={FORM_STYLES.inputGroup}>
+                  <h3 className="text-lg font-medium text-gray-800 mb-4">Informations de l'entreprise</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className={FORM_STYLES.label}>Nom de l'entreprise</label>
+                      <input
+                        type="text"
+                        name="company_name"
+                        placeholder="Nom de votre entreprise"
+                        value={formData.company_name}
+                        onChange={handleChange}
+                        className={FORM_STYLES.input}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className={FORM_STYLES.label}>Email général de l'entreprise</label>
+                      <input
+                        type="email"
+                        name="company_email"
+                        placeholder="contact@entreprise.com"
+                        value={formData.company_email}
+                        onChange={handleChange}
+                        className={FORM_STYLES.input}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className={FORM_STYLES.label}>Secteur d'activité</label>
+                      <input
+                        type="text"
+                        name="sector"
+                        placeholder="Ex: Technologies, Construction, etc."
+                        value={formData.sector}
+                        onChange={handleChange}
+                        className={FORM_STYLES.input}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className={FORM_STYLES.label}>Numéro de TVA</label>
+                      <input
+                        type="text"
+                        name="tax_number"
+                        placeholder="BE0123456789"
+                        value={formData.tax_number}
+                        onChange={handleChange}
+                        className={FORM_STYLES.input}
+                        required
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <input
-                    type="text"
-                    name="localite"
-                    placeholder="Localité"
-                    value={formData.localite}
-                    onChange={handleChange}
-                    className={FORM_STYLES.input}
-                    required
-                  />
+
+                <div className={FORM_STYLES.inputGroup}>
+                  <h3 className="text-lg font-medium text-gray-800 mb-4">Informations de contact</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className={FORM_STYLES.label}>Nom du contact principal</label>
+                      <input
+                        type="text"
+                        name="contact_name"
+                        placeholder="Nom du responsable principal"
+                        value={formData.contact_name}
+                        onChange={handleChange}
+                        className={FORM_STYLES.input}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className={FORM_STYLES.label}>Nom de la personne à contacter</label>
+                      <input
+                        type="text"
+                        name="contact_person_name"
+                        placeholder="Nom de la personne à contacter"
+                        value={formData.contact_person_name}
+                        onChange={handleChange}
+                        className={FORM_STYLES.input}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className={FORM_STYLES.label}>Rôle / Fonction</label>
+                      <input
+                        type="text"
+                        name="contact_person_role"
+                        placeholder="Ex: Responsable RH, Directeur, etc."
+                        value={formData.contact_person_role}
+                        onChange={handleChange}
+                        className={FORM_STYLES.input}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className={FORM_STYLES.label}>Email du contact</label>
+                      <input
+                        type="email"
+                        name="contact_person_email"
+                        placeholder="contact@email.com"
+                        value={formData.contact_person_email}
+                        onChange={handleChange}
+                        className={FORM_STYLES.input}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className={FORM_STYLES.label}>Téléphone du contact</label>
+                      <PhoneInput
+                        value={formData.contact_person_phone}
+                        onChange={(value) => setFormData(prev => ({ ...prev, contact_person_phone: value }))}
+                        className={FORM_STYLES.input}
+                        required
+                      />
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-            {userType === 'student' && (
-              <div className={FORM_STYLES.ageCertificationContainer}>
-                <label className={FORM_STYLES.ageCertificationLabel}>
-                  <input
-                    type="checkbox"
-                    name="age_certification"
-                    checked={formData.age_certification}
-                    onChange={handleChange}
-                    disabled={!formData.date_of_birth || !isOldEnough(formData.date_of_birth)}
-                    className={FORM_STYLES.ageCertificationCheckbox}
-                    required
-                  />
-                  Je certifie avoir au moins 15 ans
-                </label>
-                {formData.date_of_birth && !isOldEnough(formData.date_of_birth) && (
-                  <p className="text-red-500 text-sm mt-2">
-                    Vous devez avoir au moins 15 ans pour vous inscrire.
-                  </p>
-                )}
-              </div>
+
+                <div className={FORM_STYLES.inputGroup}>
+                  <h3 className="text-lg font-medium text-gray-800 mb-4">Adresse de l'entreprise</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className={FORM_STYLES.label}>Rue et numéro</label>
+                      <input
+                        type="text"
+                        name="address_street"
+                        placeholder="Rue et numéro"
+                        value={formData.address_street}
+                        onChange={handleChange}
+                        className={FORM_STYLES.input}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className={FORM_STYLES.label}>Pays</label>
+                      <input
+                        type="text"
+                        name="address_country"
+                        placeholder="Pays"
+                        value={formData.address_country}
+                        onChange={handleChange}
+                        className={FORM_STYLES.input}
+                        required
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className={FORM_STYLES.label}>Code postal</label>
+                        <input
+                          type="text"
+                          name="code_postal"
+                          placeholder="Code postal"
+                          value={formData.code_postal}
+                          onChange={handleChange}
+                          className={FORM_STYLES.input}
+                          required
+                          maxLength={4}
+                          pattern="[0-9]*"
+                          inputMode="numeric"
+                        />
+                      </div>
+                      <div>
+                        <label className={FORM_STYLES.label}>Localité</label>
+                        <input
+                          type="text"
+                          name="localite"
+                          placeholder="Localité"
+                          value={formData.localite}
+                          onChange={handleChange}
+                          className={FORM_STYLES.input}
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {error && <div className={FORM_STYLES.error}>{error}</div>}
+                <button
+                  type="submit"
+                  className={FORM_STYLES.button}
+                >
+                  S'inscrire
+                </button>
+              </>
             )}
-            {error && <div className={FORM_STYLES.error}>{error}</div>}
-            {userType === 'student' && (!formData.date_of_birth || !isOldEnough(formData.date_of_birth) || !formData.age_certification) ? (
-              <button
-                type="button"
-                className={FORM_STYLES.buttonDisabled}
-                onClick={(e) => e.preventDefault()}
-              >
-                Veuillez confirmer votre âge
-                <div className={FORM_STYLES.tooltip}>
-                  {!formData.date_of_birth && "Veuillez renseigner votre date de naissance"}
-                  {formData.date_of_birth && !isOldEnough(formData.date_of_birth) && "Vous devez avoir au moins 15 ans"}
-                  {formData.date_of_birth && isOldEnough(formData.date_of_birth) && !formData.age_certification && "Veuillez cocher la case de certification d'âge"}
+            {userType === 'particulier' && (
+              <>
+                <div className={FORM_STYLES.inputGroup}>
+                  <h3 className="text-lg font-medium text-gray-800 mb-4">Informations personnelles</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className={FORM_STYLES.label}>Prénom</label>
+                      <input
+                        type="text"
+                        name="first_name"
+                        placeholder="Votre prénom"
+                        value={formData.first_name}
+                        onChange={handleChange}
+                        className={FORM_STYLES.input}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className={FORM_STYLES.label}>Nom</label>
+                      <input
+                        type="text"
+                        name="last_name"
+                        placeholder="Votre nom"
+                        value={formData.last_name}
+                        onChange={handleChange}
+                        className={FORM_STYLES.input}
+                        required
+                      />
+                    </div>
+                  </div>
                 </div>
-              </button>
-            ) : (
-              <button
-                type="submit"
-                className={FORM_STYLES.button}
-              >
-                S'inscrire
-              </button>
+
+                <div className={FORM_STYLES.inputGroup}>
+                  <h3 className="text-lg font-medium text-gray-800 mb-4">Adresse</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className={FORM_STYLES.label}>Rue et numéro</label>
+                      <input
+                        type="text"
+                        name="address_street"
+                        placeholder="Rue et numéro"
+                        value={formData.address_street}
+                        onChange={handleChange}
+                        className={FORM_STYLES.input}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className={FORM_STYLES.label}>Pays</label>
+                      <input
+                        type="text"
+                        name="address_country"
+                        placeholder="Pays"
+                        value={formData.address_country}
+                        onChange={handleChange}
+                        className={FORM_STYLES.input}
+                        required
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className={FORM_STYLES.label}>Code postal</label>
+                        <input
+                          type="text"
+                          name="code_postal"
+                          placeholder="Code postal"
+                          value={formData.code_postal}
+                          onChange={handleChange}
+                          className={FORM_STYLES.input}
+                          required
+                          maxLength={4}
+                          pattern="[0-9]*"
+                          inputMode="numeric"
+                        />
+                      </div>
+                      <div>
+                        <label className={FORM_STYLES.label}>Localité</label>
+                        <input
+                          type="text"
+                          name="localite"
+                          placeholder="Localité"
+                          value={formData.localite}
+                          onChange={handleChange}
+                          className={FORM_STYLES.input}
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {error && <div className={FORM_STYLES.error}>{error}</div>}
+                <button
+                  type="submit"
+                  className={FORM_STYLES.button}
+                >
+                  S'inscrire
+                </button>
+              </>
             )}
           </div>
         );
@@ -802,19 +1130,23 @@ export default function Login() {
       educational_institution: "",
       level: "",
       company_name: "",
-      contact_name: "",
-      tax_number: "",
+      company_email: "",
       sector: "",
+      tax_number: "",
+      contact_name: "",
       contact_person_name: "",
+      contact_person_role: "",
       contact_person_email: "",
       contact_person_phone: "",
-      contact_preference: "",
       address_street: "",
+      address_country: "",
       code_postal: "",
       localite: "",
       type: "",
       is_integration_admin: false,
-      age_certification: false
+      age_certification: false,
+      study_year: "",
+      study_field: ""
     });
     setUserType(null);
     setError(null);

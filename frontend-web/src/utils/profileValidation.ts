@@ -31,17 +31,35 @@ export const validateFormByUserType = (formData: any, userType: string) => {
       break;
 
     case 'professionnel':
-      if (!formData.full_name) {
-        errors.push('Nom public requis');
-      }
       if (!formData.company_name) {
-        errors.push('Dénomination sociale requise');
+        errors.push('Nom de l\'entreprise requis');
+      }
+      if (!formData.company_email) {
+        errors.push('Email de l\'entreprise requis');
+      }
+      if (!formData.sector) {
+        errors.push('Secteur d\'activité requis');
       }
       if (!formData.tax_number) {
         errors.push('Numéro de TVA requis');
       }
-      if (!formData.sector) {
-        errors.push('Secteur d\'activité requis');
+      if (!formData.contact_name) {
+        errors.push('Nom du contact principal requis');
+      }
+      if (!formData.contact_person_name) {
+        errors.push('Nom de la personne à contacter requis');
+      }
+      if (!formData.contact_person_role) {
+        errors.push('Rôle de la personne à contacter requis');
+      }
+      if (!formData.contact_person_email) {
+        errors.push('Email du contact requis');
+      }
+      if (!formData.contact_person_phone) {
+        errors.push('Téléphone du contact requis');
+      }
+      if (!formData.address_country) {
+        errors.push('Pays requis');
       }
       break;
 
@@ -105,10 +123,16 @@ export const buildProfileData = (formData: any, userType: string, userId: string
     case 'professionnel':
       return {
         ...baseProfile,
-        full_name: formData.full_name,
         company_name: formData.company_name,
+        company_email: formData.company_email,
+        sector: formData.sector,
         tax_number: formData.tax_number,
-        sector: formData.sector
+        contact_name: formData.contact_name,
+        contact_person_name: formData.contact_person_name,
+        contact_person_role: formData.contact_person_role,
+        contact_person_email: formData.contact_person_email,
+        contact_person_phone: formData.contact_person_phone,
+        address_country: formData.address_country
       };
 
     case 'etablissement':
