@@ -6,78 +6,36 @@ export const validateFormByUserType = (formData: any, userType: string) => {
     errors.push('Email et mot de passe requis');
   }
 
-  // Validation de l'adresse
-  if (!formData.address_street || !formData.code_postal || !formData.localite) {
-    errors.push('Tous les champs d\'adresse sont requis');
-  }
-
+  // Seules validations spécifiques au type d'utilisateur
   switch (userType) {
     case 'student':
-      if (!formData.first_name || !formData.last_name) {
-        errors.push('Prénom et nom requis pour les étudiants');
+      // Validations essentielles pour les étudiants
+      if (!formData.phone) {
+        errors.push('Numéro de téléphone requis');
       }
-      if (!formData.educational_institution) {
-        errors.push('Établissement scolaire requis');
-      }
-      if (!formData.level) {
-        errors.push('Niveau d\'études requis');
+      if (!formData.date_of_birth) {
+        errors.push('Date de naissance requise');
       }
       break;
 
     case 'particulier':
-      if (!formData.first_name || !formData.last_name) {
-        errors.push('Prénom et nom requis');
-      }
+      // Aucune validation supplémentaire requise à l'inscription
       break;
 
     case 'professionnel':
+      // Validations essentielles pour les professionnels
       if (!formData.company_name) {
         errors.push('Nom de l\'entreprise requis');
       }
-      if (!formData.company_email) {
-        errors.push('Email de l\'entreprise requis');
-      }
-      if (!formData.sector) {
-        errors.push('Secteur d\'activité requis');
-      }
-      if (!formData.tax_number) {
-        errors.push('Numéro de TVA requis');
-      }
-      if (!formData.contact_name) {
-        errors.push('Nom du contact principal requis');
-      }
-      if (!formData.contact_person_name) {
-        errors.push('Nom de la personne à contacter requis');
-      }
-      if (!formData.contact_person_role) {
-        errors.push('Rôle de la personne à contacter requis');
-      }
-      if (!formData.contact_person_email) {
-        errors.push('Email du contact requis');
-      }
-      if (!formData.contact_person_phone) {
-        errors.push('Téléphone du contact requis');
-      }
-      if (!formData.address_country) {
-        errors.push('Pays requis');
+      if (!formData.phone) {
+        errors.push('Numéro de téléphone requis');
       }
       break;
 
     case 'etablissement':
+      // Seules validations essentielles pour les établissements
       if (!formData.full_name) {
         errors.push('Nom public requis');
-      }
-      if (!formData.company_name) {
-        errors.push('Dénomination sociale requise');
-      }
-      if (!formData.contact_person_name) {
-        errors.push('Nom du contact requis');
-      }
-      if (!formData.contact_person_email) {
-        errors.push('Email du contact requis');
-      }
-      if (!formData.contact_person_phone) {
-        errors.push('Téléphone du contact requis');
       }
       break;
   }
