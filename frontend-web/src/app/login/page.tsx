@@ -519,7 +519,8 @@ export default function Login() {
             onClick={() => setShowOtherMethods(!showOtherMethods)}
             className={FORM_STYLES.otherMethodsButton}
           >
-            {showOtherMethods ? "← Retour à la connexion classique" : "Autres méthodes de connexion →"}
+            {/* {showOtherMethods ? "← Retour à la connexion classique" : "Autres méthodes de connexion →"} */}
+            Continuer en tant qu'invité
           </button>
           {showOtherMethods && (
             <div className="space-y-3">
