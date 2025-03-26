@@ -5,6 +5,9 @@
   --primary-color: #FF751F;
   --primary-hover: #E66A1C;
   --primary-light: #FFE4D1;
+  --text-color: #000000;
+  --border-color: #E5E7EB;
+  --focus-ring: rgba(255, 117, 31, 0.2);
 }
 
 /* Couleurs pour les particuliers et professionnels */
@@ -12,6 +15,9 @@
   --primary-color: #87CEEB;
   --primary-hover: #5FB8E8;
   --primary-light: #E3F2FA;
+  --text-color: #000000;
+  --border-color: #E5E7EB;
+  --focus-ring: rgba(135, 206, 235, 0.2);
 }
 
 /* Classes utilitaires */
@@ -21,6 +27,10 @@
 
 .text-theme-primary {
   color: var(--primary-color);
+}
+
+.text-theme {
+  color: var(--text-color);
 }
 
 .hover\:bg-theme-hover:hover {
@@ -37,6 +47,82 @@
 
 .bg-theme-light {
   background-color: var(--primary-light);
+}
+
+/* Styles des champs de saisie */
+.student-theme input[type="text"],
+.student-theme input[type="email"],
+.student-theme input[type="tel"],
+.student-theme input[type="date"],
+.student-theme input[type="password"],
+.student-theme textarea,
+.student-theme select,
+.professional-theme input[type="text"],
+.professional-theme input[type="email"],
+.professional-theme input[type="tel"],
+.professional-theme input[type="date"],
+.professional-theme input[type="password"],
+.professional-theme textarea,
+.professional-theme select {
+  border: 2px solid var(--border-color);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  width: 100%;
+  background-color: white;
+  transition: all 0.2s ease-in-out;
+  outline: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.student-theme input[type="text"]:hover,
+.student-theme input[type="email"]:hover,
+.student-theme input[type="tel"]:hover,
+.student-theme input[type="date"]:hover,
+.student-theme input[type="password"]:hover,
+.student-theme textarea:hover,
+.student-theme select:hover,
+.professional-theme input[type="text"]:hover,
+.professional-theme input[type="email"]:hover,
+.professional-theme input[type="tel"]:hover,
+.professional-theme input[type="date"]:hover,
+.professional-theme input[type="password"]:hover,
+.professional-theme textarea:hover,
+.professional-theme select:hover {
+  border-color: var(--primary-color);
+}
+
+.student-theme input[type="text"]:focus,
+.student-theme input[type="email"]:focus,
+.student-theme input[type="tel"]:focus,
+.student-theme input[type="date"]:focus,
+.student-theme input[type="password"]:focus,
+.student-theme textarea:focus,
+.student-theme select:focus,
+.professional-theme input[type="text"]:focus,
+.professional-theme input[type="email"]:focus,
+.professional-theme input[type="tel"]:focus,
+.professional-theme input[type="date"]:focus,
+.professional-theme input[type="password"]:focus,
+.professional-theme textarea:focus,
+.professional-theme select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px var(--focus-ring);
+}
+
+/* Style des labels */
+.student-theme label,
+.professional-theme label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+/* Style des champs requis */
+.student-theme label[required]::after,
+.professional-theme label[required]::after {
+  content: " *";
+  color: #DC2626;
 }
 
 .focus\:ring-theme-primary:focus {
@@ -78,4 +164,34 @@
 
 .professional-theme .border-green-500 {
   border-color: var(--primary-color);
+}
+
+/* Forcer le texte en noir pour tous les types d'utilisateurs */
+.student-theme *, .professional-theme * {
+  color: var(--text-color);
+}
+
+/* Exceptions pour conserver les couleurs spécifiques */
+.student-theme .text-theme-primary,
+.professional-theme .text-theme-primary,
+.student-theme .text-green-600,
+.professional-theme .text-green-600,
+.student-theme .hover\:text-theme-hover:hover,
+.professional-theme .hover\:text-theme-hover:hover {
+  color: var(--primary-color);
+}
+
+.student-theme .text-gray-600,
+.professional-theme .text-gray-600 {
+  color: #4B5563;
+}
+
+.student-theme .text-red-600,
+.professional-theme .text-red-600 {
+  color: #DC2626;
+}
+
+.student-theme .text-white,
+.professional-theme .text-white {
+  color: #FFFFFF;
 } 

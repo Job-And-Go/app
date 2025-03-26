@@ -5,7 +5,7 @@ This project connects students with individuals or businesses for paid tasks or 
 # Job And GO - Documentation
 
 ## 📋 Description
-Job And GO est une application de recherche d'emploi disponible sur web et mobile, permettant aux utilisateurs de gérer leur recherche d'emploi de manière efficace et organisée.
+Job And GO est une application de recherche d'emploi disponible sur web et mobile, permettant aux utilisateurs etudiant de gérer leur recherche d'emploi de manière efficace et organisée.
 
 ## 🏗️ Architecture
 L'application repose sur une architecture moderne en trois parties :
@@ -157,6 +157,3 @@ expo start
 - Documentation du code
 
 ---
-
-Cette documentation est basée sur l'analyse de la structure du projet et des intégrations. Pour plus de détails spécifiques ou des instructions avancées, n'hésitez pas à demander !
-

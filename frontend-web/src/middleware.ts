@@ -5,6 +5,19 @@ import { NextRequest, NextResponse } from "next/server";
 // Fonction middleware qui vérifie l'authentification de l'utilisateur
 export async function middleware(req: NextRequest) {
   try {
+    // Si l'URL est la racine ("/"), rediriger vers la landing page pour les nouveaux visiteurs
+    if (req.nextUrl.pathname === "/") {
+      // Création du client Supabase pour le middleware
+      const res = NextResponse.next();
+      const supabase = createMiddlewareClient({ req, res });
+      const { data: { session } } = await supabase.auth.getSession();
+
+      // Si pas de session, rediriger vers la landing page
+      if (!session) {
+        return NextResponse.redirect(new URL("/landing", req.url));
+      }
+    }
+
     // Création de la réponse Next.js
     const res = NextResponse.next();
     // Initialisation du client Supabase pour le middleware
@@ -33,7 +46,7 @@ export async function middleware(req: NextRequest) {
 }
 
 // Configuration des routes où le middleware doit s'appliquer
-// Exclut les routes API, les ressources statiques et la page de login
+// Exclut les routes API, les ressources statiques, la page de login et la landing page
 export const config = {
-  matcher: "/((?!api|_next/static|_next/image|favicon.ico|login).*)",
+  matcher: "/((?!api|_next/static|_next/image|favicon.ico|login|landing).*)",
 };

@@ -44,7 +44,6 @@ interface FormField {
 interface Section {
   id: string;
   title: string;
-  icon: string;
   fields: FormField[];
 }
 
@@ -144,7 +143,6 @@ export default function StudentProfile() {
     {
       id: 'personal',
       title: 'Informations personnelles',
-      icon: '👤',
       fields: [
         { name: 'first_name', label: 'Prénom', type: 'text', required: true },
         { name: 'last_name', label: 'Nom', type: 'text', required: true },
@@ -157,7 +155,6 @@ export default function StudentProfile() {
     {
       id: 'address',
       title: 'Adresse',
-      icon: '📍',
       fields: [
         { name: 'location', label: 'Rechercher une adresse', type: 'text', component: 'location' },
         { name: 'address_street', label: 'Rue et numéro', type: 'text', required: true },
@@ -169,7 +166,6 @@ export default function StudentProfile() {
     {
       id: 'education',
       title: 'Formation',
-      icon: '🎓',
       fields: [
         { name: 'educational_institution', label: 'Établissement', type: 'text', required: true },
         { name: 'level', label: 'Niveau d\'études', type: 'select', options: [
@@ -183,7 +179,6 @@ export default function StudentProfile() {
     {
       id: 'preferences',
       title: 'Préférences',
-      icon: '⚙️',
       fields: [
         { name: 'contact_preference', label: 'Préférence de contact', type: 'select', options: [
           'Email',
@@ -197,7 +192,6 @@ export default function StudentProfile() {
     {
       id: 'documents',
       title: 'Documents',
-      icon: '📎',
       fields: [
         { name: 'cv_url', label: 'CV', type: 'file', component: 'file' },
         { name: 'avatar_url', label: 'Photo de profil', type: 'file', component: 'file' }
@@ -230,13 +224,12 @@ export default function StudentProfile() {
             <button
               key={section.id}
               onClick={() => setActiveSection(section.id)}
-              className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-colors ${
+              className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
                 activeSection === section.id
                   ? 'bg-theme-light text-theme-primary'
                   : 'hover:bg-gray-50 text-gray-600'
               }`}
             >
-              <span className="text-xl">{section.icon}</span>
               <span className="font-medium">{section.title}</span>
             </button>
           ))}
@@ -248,8 +241,7 @@ export default function StudentProfile() {
               key={section.id}
               className={activeSection === section.id ? 'block' : 'hidden'}
             >
-              <h2 className="text-xl font-semibold text-theme-primary mb-6 flex items-center gap-3">
-                <span className="text-2xl">{section.icon}</span>
+              <h2 className="text-xl font-semibold text-theme-primary mb-6">
                 {section.title}
               </h2>
 

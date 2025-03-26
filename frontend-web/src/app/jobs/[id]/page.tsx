@@ -64,7 +64,7 @@ export default function JobDetails({ params }: { params: { id: string } }) {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
-          router.push('/login');
+          router.push('/landing');
           return;
         }
 

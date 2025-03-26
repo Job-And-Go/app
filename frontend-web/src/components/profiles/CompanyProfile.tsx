@@ -45,7 +45,6 @@ interface FormField {
 interface Section {
   id: string;
   title: string;
-  icon: string;
   fields: FormField[];
 }
 
@@ -182,7 +181,6 @@ export default function CompanyProfile() {
     {
       id: 'company',
       title: 'Informations entreprise',
-      icon: '🏢',
       fields: [
         { name: 'company_name', label: 'Nom de l\'entreprise', type: 'text', required: true },
         { name: 'tax_number', label: 'Numéro de TVA', type: 'text', required: true },
@@ -193,7 +191,6 @@ export default function CompanyProfile() {
     {
       id: 'address',
       title: 'Adresse',
-      icon: '📍',
       fields: [
         { name: 'location', label: 'Rechercher une adresse', type: 'text', component: 'location' },
         { name: 'address_street', label: 'Rue et numéro', type: 'text', required: true },
@@ -205,7 +202,6 @@ export default function CompanyProfile() {
     {
       id: 'contact',
       title: 'Contact principal',
-      icon: '👥',
       fields: [
         { name: 'contact_person_name', label: 'Nom du contact', type: 'text', required: true },
         { name: 'contact_person_role', label: 'Fonction', type: 'text', required: true },
@@ -216,7 +212,6 @@ export default function CompanyProfile() {
     {
       id: 'preferences',
       title: 'Préférences',
-      icon: '⚙️',
       fields: [
         { name: 'is_private', label: 'Profil privé', type: 'checkbox' },
         { name: 'accept_dm', label: 'Accepter les messages directs', type: 'checkbox' }
@@ -225,7 +220,6 @@ export default function CompanyProfile() {
     {
       id: 'logo',
       title: 'Logo entreprise',
-      icon: '🖼️',
       fields: [
         { name: 'avatar_url', label: 'Logo', type: 'file', component: 'file' }
       ]
@@ -257,13 +251,12 @@ export default function CompanyProfile() {
             <button
               key={section.id}
               onClick={() => setActiveSection(section.id)}
-              className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-colors ${
+              className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
                 activeSection === section.id
                   ? 'bg-theme-light text-theme-primary'
                   : 'hover:bg-gray-50 text-gray-600'
               }`}
             >
-              <span className="text-xl">{section.icon}</span>
               <span className="font-medium">{section.title}</span>
             </button>
           ))}
@@ -275,8 +268,7 @@ export default function CompanyProfile() {
               key={section.id}
               className={activeSection === section.id ? 'block' : 'hidden'}
             >
-              <h2 className="text-xl font-semibold text-theme-primary mb-6 flex items-center gap-3">
-                <span className="text-2xl">{section.icon}</span>
+              <h2 className="text-xl font-semibold text-theme-primary mb-6">
                 {section.title}
               </h2>
 
