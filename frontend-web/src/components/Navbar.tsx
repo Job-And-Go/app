@@ -1,9 +1,9 @@
 'use client';
 
-import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { useEffect, useState, useRef, useCallback } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
+import Image from 'next/image';
+import { supabase } from '@/lib/supabase';
 import { useNotifications } from '@/hooks/useNotifications';
 import { formatName } from '@/utils/nameFormatter';
 
@@ -69,22 +69,8 @@ interface ProfileMenuProps {
   handleSignOut: () => Promise<void>;
 }
 
-const Logo = () => (
-  <div className="flex items-center">
-    <a href="/" className="cursor-pointer">
-      <Image 
-        src="/images/logo.PNG"
-        alt="StuJob Logo"
-        width={120}
-        height={40}
-        priority
-      />
-    </a>
-  </div>
-);
-
 const NotificationsMenu = ({ notifications, unreadCount, markAsRead, markAllAsRead }: NotificationsMenuProps) => (
-  <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg py-1 z-20 border border-gray-200">
+  <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
     <div className="p-3 border-b border-gray-200 flex justify-between items-center">
       <h3 className="text-lg font-semibold">Notifications</h3>
       {unreadCount > 0 && (
@@ -127,7 +113,7 @@ const NotificationsMenu = ({ notifications, unreadCount, markAsRead, markAllAsRe
 );
 
 const MessagesMenu = ({ recentMessages, unreadMessagesCount, router }: MessagesMenuProps) => (
-  <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg py-1 z-20 border border-gray-200">
+  <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
     <div className="p-3 border-b border-gray-200 flex justify-between items-center">
       <h3 className="text-lg font-semibold">Messages</h3>
       <button
@@ -171,7 +157,7 @@ const MessagesMenu = ({ recentMessages, unreadMessagesCount, router }: MessagesM
 );
 
 const ProfileMenu = ({ userProfile, handleSignOut }: ProfileMenuProps) => (
-  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 border border-gray-200">
+  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
     <a href="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
       Mon Profil
     </a>
@@ -217,6 +203,20 @@ const ProfileMenu = ({ userProfile, handleSignOut }: ProfileMenuProps) => (
   </div>
 );
 
+const Logo = () => (
+  <div className="flex items-center">
+    <a href="/" className="cursor-pointer">
+      <Image 
+        src="/images/logo.PNG"
+        alt="StuJob Logo"
+        width={120}
+        height={40}
+        priority
+      />
+    </a>
+  </div>
+);
+
 const MainNav = () => (
   <div className="hidden md:flex items-center space-x-4">
     <a href="/blog" className="text-gray-700 hover:text-gray-900 px-3 py-2 text-sm">
@@ -233,13 +233,47 @@ const MainNav = () => (
 
 export default function Navbar({ user, userProfile, handleSignOut }: NavbarProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showMessages, setShowMessages] = useState(false);
   const [recentMessages, setRecentMessages] = useState<Message[]>([]);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+  const notificationsMenuRef = useRef<HTMLDivElement>(null);
+  const messagesMenuRef = useRef<HTMLDivElement>(null);
+  
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications(user?.id);
+
+  const closeAllMenus = useCallback(() => {
+    setShowProfileMenu(false);
+    setShowNotifications(false);
+    setShowMessages(false);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        profileMenuRef.current && 
+        !profileMenuRef.current.contains(event.target as Node) &&
+        notificationsMenuRef.current && 
+        !notificationsMenuRef.current.contains(event.target as Node) &&
+        messagesMenuRef.current && 
+        !messagesMenuRef.current.contains(event.target as Node)
+      ) {
+        closeAllMenus();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [closeAllMenus]);
+
+  // Fermer les menus lors de la navigation
+  useEffect(() => {
+    closeAllMenus();
+  }, [pathname, closeAllMenus]);
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -297,9 +331,13 @@ export default function Navbar({ user, userProfile, handleSignOut }: NavbarProps
           <div className="flex items-center gap-4">
             {user && (
               <>
-                <div className="relative">
+                <div className="relative" ref={notificationsMenuRef}>
                   <button
-                    onClick={() => setShowNotifications(!showNotifications)}
+                    onClick={() => {
+                      setShowNotifications(!showNotifications);
+                      setShowProfileMenu(false);
+                      setShowMessages(false);
+                    }}
                     className="relative p-2 text-gray-600 hover:text-gray-900"
                   >
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -321,9 +359,13 @@ export default function Navbar({ user, userProfile, handleSignOut }: NavbarProps
                   )}
                 </div>
 
-                <div className="relative">
+                <div className="relative" ref={messagesMenuRef}>
                   <button
-                    onClick={() => setShowMessages(!showMessages)}
+                    onClick={() => {
+                      setShowMessages(!showMessages);
+                      setShowProfileMenu(false);
+                      setShowNotifications(false);
+                    }}
                     className="relative p-2 text-gray-600 hover:text-gray-900"
                   >
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -347,9 +389,17 @@ export default function Navbar({ user, userProfile, handleSignOut }: NavbarProps
             )}
 
             {user ? (
-              <div className="relative">
+              <div className="relative" ref={profileMenuRef}>
                 <button
-                  onClick={() => user.email ? setShowProfileMenu(!showProfileMenu) : router.push('/login')}
+                  onClick={() => {
+                    if (user?.email) {
+                      setShowProfileMenu(!showProfileMenu);
+                      setShowNotifications(false);
+                      setShowMessages(false);
+                    } else {
+                      router.push('/login');
+                    }
+                  }}
                   className="bg-theme-primary text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-theme-hover transition-colors flex items-center gap-2"
                 >
                   {userProfile?.avatar_url && (

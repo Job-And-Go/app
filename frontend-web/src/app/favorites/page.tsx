@@ -97,7 +97,7 @@ export default function Favorites() {
               </div>
               <button
                 onClick={() => router.push(`/jobs/${favorite.job.id}`)}
-                className="mt-4 w-full bg-[#3bee5e] text-white py-2 rounded hover:bg-[#32d951] transition-colors"
+                className="mt-4 w-full bg-theme-primary text-white py-2 px-4 rounded hover:bg-theme-hover transition-colors"
               >
                 Voir les détails
               </button>

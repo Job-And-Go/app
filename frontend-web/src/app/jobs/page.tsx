@@ -1,77 +1,110 @@
 'use client';
 
-import { supabase } from "@/lib/supabase";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 import Navbar from '@/components/Navbar';
-import categoriesData from '@/data/categories.json';
+import JobsSidebar from '@/components/JobsSidebar';
+import Image from 'next/image';
+import { FiMapPin, FiClock } from 'react-icons/fi';
+import { formatDistanceToNow } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
-type Categories = {
-  [key: string]: string[];
-};
-
-type Job = {
+// Types
+interface Job {
   id: string;
   title: string;
   description: string;
   location: string;
   salary: number;
-  status: string;
+  category: string;
+  subcategory: string;
   created_at: string;
   employer: {
+    id: string;
     full_name: string;
+    avatar_url: string;
   };
-  category: string | null;
-  subcategory: string | null;
-};
+  status: 'open' | 'closed';
+}
 
-export default function Jobs() {
+export default function JobsPage() {
   const router = useRouter();
-  const [jobs, setJobs] = useState<Job[]>([]);
-  const [isEmployer, setIsEmployer] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [filters, setFilters] = useState({
-    location: "",
-    minSalary: "",
-    status: "open",
-    category: "",
-    subcategory: ""
+    location: '',
+    minSalary: '',
+    category: '',
+    subcategory: '',
+    status: 'open',
+    sortBy: 'recent'
   });
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [categories] = useState<Categories>(categoriesData.categories);
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    router.push('/login');
+  // Catégories (à remplacer par les vraies données)
+  const categories: Record<string, string[]> = {
+    'Transport': ['Livraison', 'Déménagement'],
+    'Bricolage': ['Peinture simple', 'Montage de meubles'],
+    'Jardinage': ['Tonte', 'Taille de haies'],
+    'Ménage': ['Nettoyage', 'Repassage'],
+    'Cours particuliers': ['Mathématiques', 'Langues'],
+    'Petsitting': ['Garde de chiens', 'Garde de chats'],
+    'Aide administrative': ['Comptabilité', 'Secrétariat'],
+    'Événements': ['Service', 'Animation'],
+    'Informatique': ['Dépannage', 'Formation'],
+    'Réseaux sociaux': ['Community management', 'Création de contenu'],
+    'Développement': ['Sites web', 'Applications mobiles'],
+    'Design': ['Graphisme', 'UI/UX'],
+    'Marketing': ['SEO', 'Publicité']
   };
 
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+        
+        setUserProfile(profile);
+      }
+    };
+
+    getUser();
+  }, []);
+
+  useEffect(() => {
+    if (userProfile) {  // Seulement si userProfile est chargé
+      fetchJobs();
+    }
+  }, [userProfile, filters]);  // Ajout de userProfile comme dépendance
+
   const fetchJobs = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    setUser(user);
-    
+    setIsLoading(true);
+    console.log('UserProfile:', userProfile);
+    console.log('UserProfile type:', userProfile?.type);
+
     let query = supabase
       .from('jobs')
       .select(`
         *,
-        employer:profiles!jobs_employer_id_fkey(full_name)
+        employer:profiles!jobs_employer_id_fkey(id, full_name, avatar_url)
       `)
-      .eq('is_open', true);
+      .eq('status', filters.status);
 
-    // Si l'utilisateur est connecté, vérifier son type
-    if (user) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('type')
-        .eq('id', user.id)
-        .single();
-
-      // Si c'est un particulier ou un professionnel, montrer uniquement ses annonces
-      if (profile?.type === 'particulier' || profile?.type === 'professionnel') {
-        setIsEmployer(true);
-        query = query.eq('employer_id', user.id);
-      }
+    // Si l'utilisateur est un particulier ou un professionnel, on ne montre que ses offres
+    if (userProfile?.type === 'particulier' || userProfile?.type === 'professionnel') {
+      console.log('Filtering for employer:', userProfile.id);
+      query = query.eq('employer_id', userProfile.id);
+      console.log('Final query:', query); // Pour voir la requête finale
+    } else {
+      console.log('Not filtering - showing all jobs for student');
     }
 
     if (filters.location) {
@@ -79,7 +112,7 @@ export default function Jobs() {
     }
 
     if (filters.minSalary) {
-      query = query.gte('salary', parseFloat(filters.minSalary));
+      query = query.gte('salary', filters.minSalary);
     }
 
     if (filters.category) {
@@ -90,171 +123,225 @@ export default function Jobs() {
       query = query.eq('subcategory', filters.subcategory);
     }
 
+    // Tri
+    switch (filters.sortBy) {
+      case 'recent':
+        query = query.order('created_at', { ascending: false });
+        break;
+      case 'salary_desc':
+        query = query.order('salary', { ascending: false });
+        break;
+      case 'salary_asc':
+        query = query.order('salary', { ascending: true });
+        break;
+    }
+
     const { data, error } = await query;
+    console.log('Query result:', data);
+    console.log('Query error:', error);
+    if (data) {
+      console.log('Number of jobs returned:', data.length);
+      if (userProfile?.type === 'particulier' || userProfile?.type === 'professionnel') {
+        console.log('Jobs filtered by employer_id:', data.filter(job => job.employer_id === userProfile.id));
+      }
+    }
 
     if (error) {
-      console.error("Erreur lors de la récupération des offres:", error);
+      console.error('Error fetching jobs:', error);
       return;
     }
 
     setJobs(data);
+    setIsLoading(false);
   };
 
-  useEffect(() => {
-    fetchJobs();
-  }, [filters]);
-
-  useEffect(() => {
-    const getProfile = async () => {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user?.id)
-        .single();
-      setUserProfile(profile);
-    };
-    
-    if (user) getProfile();
-  }, [user]);
-
-  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFilters(prev => ({
-      ...prev,
-      [name]: value
-    }));
+  const handleFilterChange = (name: string, value: string) => {
+    setFilters(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleJobClick = (jobId: string) => {
-    if (!user) {
-      router.push('/login');
-      return;
-    }
-    router.push(`/jobs/${jobId}`);
+  const handleReset = () => {
+    setFilters({
+      location: '',
+      minSalary: '',
+      category: '',
+      subcategory: '',
+      status: 'open',
+      sortBy: 'recent'
+    });
   };
+
+  const activeFiltersCount = Object.entries(filters).filter(([key, value]) => {
+    if (key === 'status' && value === 'open') return false;
+    if (key === 'sortBy' && value === 'recent') return false;
+    return value !== '';
+  }).length;
+
+  const isEmployer = userProfile?.type === 'particulier' || userProfile?.type === 'professionnel';
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-100">
+    <div className="min-h-screen bg-gray-50">
       <Navbar 
         user={user}
         userProfile={userProfile}
-        handleSignOut={handleSignOut}
+        handleSignOut={async () => {
+          await supabase.auth.signOut();
+          router.push('/login');
+        }}
       />
 
-      <div className="max-w-7xl mx-auto p-6 mt-20">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">{isEmployer ? "Mes offres publiées" : "Offres d'emploi"}</h1>
-          {isEmployer && (
-            <button
-              onClick={() => router.push('/jobs/create')}
-              className="bg-[#3bee5e] text-white px-4 py-2 rounded hover:bg-[#32d951] transition-colors"
-            >
-              Publier une offre
-            </button>
-          )}
-        </div>
+      <div className="flex pt-4">
+        {/* Sidebar */}
+        <JobsSidebar
+          categories={categories}
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          onReset={handleReset}
+          activeFiltersCount={activeFiltersCount}
+        />
 
-        <div className="bg-white p-4 rounded shadow mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            <input
-              type="text"
-              name="location"
-              placeholder="Filtrer par lieu"
-              value={filters.location}
-              onChange={handleFilterChange}
-              className="p-2 border rounded text-black"
-            />
-            <input
-              type="number"
-              name="minSalary"
-              placeholder="Salaire minimum"
-              value={filters.minSalary}
-              onChange={handleFilterChange}
-              className="p-2 border rounded text-black"
-            />
-            <select
-              name="category"
-              value={filters.category}
-              onChange={(e) => {
-                handleFilterChange(e);
-                setSelectedCategory(e.target.value);
-                setFilters(prev => ({ ...prev, subcategory: "" }));
-              }}
-              className="p-2 border rounded text-black"
-            >
-              <option value="">Toutes les catégories</option>
-              {Object.keys(categories).map(category => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
+        {/* Contenu principal */}
+        <main className="flex-1 px-4 sm:px-6 lg:px-8 py-4">
+          <div className="max-w-7xl mx-auto">
+            {/* En-tête */}
+            <div className="flex justify-between items-center mb-6">
+              <h1 className="text-2xl font-bold text-gray-900">
+                {isEmployer ? "Mes offres publiées" : "Trouvez votre prochain job étudiant"}
+              </h1>
+              {isEmployer && (
+                <button
+                  onClick={() => router.push('/jobs/create')}
+                  className="inline-flex items-center px-6 py-3 text-base font-medium rounded-md text-white bg-theme-primary hover:bg-theme-hover transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                  </svg>
+                  Publier une offre
+                </button>
+              )}
+            </div>
 
-            {filters.category && (
-              <select
-                name="subcategory"
-                value={filters.subcategory}
-                onChange={handleFilterChange}
-                className="p-2 border rounded text-black"
-              >
-                <option value="">Toutes les sous-catégories</option>
-                {categories[filters.category]?.map(subcategory => (
-                  <option key={subcategory} value={subcategory}>
-                    {subcategory}
-                  </option>
+            {/* Grille des offres */}
+            {isLoading ? (
+              // Skeleton loader
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="bg-white rounded-lg overflow-hidden animate-pulse">
+                    <div className="h-48 bg-gray-200" />
+                    <div className="p-4 space-y-4">
+                      <div className="h-4 bg-gray-200 rounded w-3/4" />
+                      <div className="h-4 bg-gray-200 rounded w-1/2" />
+                      <div className="h-4 bg-gray-200 rounded w-1/4" />
+                    </div>
+                  </div>
                 ))}
-              </select>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {jobs.map(job => (
+                  <article
+                    key={job.id}
+                    onClick={() => {
+                      if (!user?.email) {
+                        if (confirm("Vous devez être connecté pour voir les détails de l'offre. Souhaitez-vous vous connecter ?")) {
+                          router.push('/login');
+                        }
+                      } else {
+                        router.push(`/jobs/${job.id}`);
+                      }
+                    }}
+                    className="group bg-white rounded-lg overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-lg hover:transform hover:-translate-y-1"
+                  >
+                    {/* Image de couverture */}
+                    <div className="relative h-48">
+                      <div className="absolute inset-0 bg-gradient-to-br from-theme-primary/10 to-theme-primary/30" />
+                      <div className="absolute inset-0 p-6 flex flex-col justify-end">
+                        <h2 className="text-xl font-semibold text-gray-900 group-hover:text-theme-primary transition-colors line-clamp-2">
+                          {job.title}
+                        </h2>
+                      </div>
+                    </div>
+
+                    <div className="p-6">
+                      {/* Informations de l'employeur */}
+                      <div className="flex items-center mb-4">
+                        <div className="relative w-10 h-10 rounded-full overflow-hidden bg-gray-200">
+                          {job.employer.avatar_url ? (
+                            <Image
+                              src={job.employer.avatar_url}
+                              alt={job.employer.full_name}
+                              fill
+                              className="object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-500">
+                              {job.employer.full_name.charAt(0)}
+                            </div>
+                          )}
+                        </div>
+                        <div className="ml-3">
+                          <p className="text-sm font-medium text-gray-900">{job.employer.full_name}</p>
+                          <div className="flex items-center text-sm text-gray-500">
+                            <FiMapPin className="w-4 h-4 mr-1" />
+                            {job.location}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Description */}
+                      <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                        {job.description}
+                      </p>
+
+                      {/* Tags et prix */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex flex-wrap gap-2">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-theme-light text-theme-primary">
+                            {job.category}
+                          </span>
+                          {job.subcategory && (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                              {job.subcategory}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Footer */}
+                      <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between text-sm">
+                        <div className="flex items-center text-gray-500">
+                          <FiClock className="w-4 h-4 mr-1" />
+                          {formatDistanceToNow(new Date(job.created_at), {
+                            addSuffix: true,
+                            locale: fr
+                          })}
+                        </div>
+                        <div className="flex items-baseline">
+                          <span className="text-gray-500">À partir de</span>
+                          <span className="ml-1 text-lg font-semibold text-gray-900">{job.salary}€</span>
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
             )}
 
-            <select
-              name="status"
-              value={filters.status}
-              onChange={handleFilterChange}
-              className="p-2 border rounded text-black"
-            >
-              <option value="open">Offres ouvertes</option>
-              <option value="closed">Offres fermées</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {jobs.map(job => (
-            <div key={job.id} className="bg-white p-6 rounded shadow">
-              <div className="flex justify-between items-start mb-2">
-                <h2 className="text-xl font-semibold">{job.title}</h2>
-                <div className="flex gap-2">
-                  <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-sm">
-                    {job.category}
-                  </span>
-                  <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-sm">
-                    {job.subcategory}
-                  </span>
+            {/* Message si aucune offre */}
+            {!isLoading && jobs.length === 0 && (
+              <div className="text-center py-16 bg-white rounded-lg">
+                <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                  <svg className="h-8 w-8 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
                 </div>
+                <h3 className="text-lg font-medium text-gray-900">Aucune offre trouvée</h3>
+                <p className="mt-2 text-sm text-gray-500 max-w-sm mx-auto">
+                  Essayez de modifier vos filtres ou revenez plus tard pour découvrir de nouvelles opportunités.
+                </p>
               </div>
-              <p className="text-gray-600 mb-4">{job.employer.full_name}</p>
-              <p className="text-gray-800 mb-4 line-clamp-3">{job.description}</p>
-              <div className="flex justify-between items-center text-sm text-gray-600">
-                <span>{job.location}</span>
-                <span>{job.salary}€</span>
-              </div>
-              <button
-                onClick={() => {
-                  if (!user?.email) {
-                    if (confirm("Vous devez être connecté pour voir les détails de l'offre. Souhaitez-vous vous connecter ?")) {
-                      router.push('/login');
-                    }
-                  } else {
-                    handleJobClick(job.id);
-                  }
-                }}
-                className="mt-4 w-full bg-[#3bee5e] text-white py-2 rounded hover:bg-[#32d951] transition-colors"
-              >
-                {user?.email ? "Voir les détails" : "Se connecter pour voir les détails"}
-              </button>
-            </div>
-          ))}
-        </div>
+            )}
+          </div>
+        </main>
       </div>
     </div>
   );

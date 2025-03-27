@@ -16,10 +16,22 @@ export const validateFormByUserType = (formData: any, userType: string) => {
       if (!formData.date_of_birth) {
         errors.push('Date de naissance requise');
       }
+      if (!formData.first_name) {
+        errors.push('Prénom requis');
+      }
+      if (!formData.last_name) {
+        errors.push('Nom requis');
+      }
       break;
 
     case 'particulier':
-      // Aucune validation supplémentaire requise à l'inscription
+      // Validations pour les particuliers
+      if (!formData.first_name) {
+        errors.push('Prénom requis');
+      }
+      if (!formData.last_name) {
+        errors.push('Nom requis');
+      }
       break;
 
     case 'professionnel':

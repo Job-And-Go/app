@@ -50,7 +50,7 @@ export default function LocationSearch({ onSelect }: LocationSearchProps) {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder="Code postal ou localité"
-        className="w-full p-2 border rounded focus:ring-2 focus:ring-[#3bee5e] text-black"
+        className="w-full p-2 border rounded focus:ring-2 focus:ring-theme-primary text-black"
       />
       
       {suggestions.length > 0 && (

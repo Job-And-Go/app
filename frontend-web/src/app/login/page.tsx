@@ -1,7 +1,7 @@
 'use client';
 
 import { supabase } from "@/lib/supabase";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
 import { IntegrationProvider, INTEGRATION_CONFIGS, getProviderConfig } from '@/config/integration';
 import { validateFormByUserType, buildProfileData } from '@/utils/profileValidation';
@@ -127,6 +127,17 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const [isOver15, setIsOver15] = useState(false);
 
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user && !user.is_anonymous) {
+        router.push('/');
+      }
+    };
+    
+    checkAuth();
+  }, [router]);
+
   const calculateAge = (birthDate: string) => {
     const today = new Date();
     const birth = new Date(birthDate);
@@ -178,7 +189,8 @@ export default function Login() {
           body: JSON.stringify({
             email: formData.email,
             password: formData.password,
-            action: 'signin'
+            action: 'signin',
+            userType: userType
           }),
         });
 
@@ -280,6 +292,7 @@ export default function Login() {
       if (error) throw error;
       router.push('/');
     } catch (error: any) {
+      setError("Erreur lors de la connexion en tant qu'invité");
       console.error("Erreur de connexion anonyme:", error.message);
     }
   };
@@ -516,52 +529,16 @@ export default function Login() {
           </button>
           <button
             type="button"
-            onClick={() => setShowOtherMethods(!showOtherMethods)}
-            className={FORM_STYLES.otherMethodsButton}
+            onClick={handleGuestLogin}
+            className={`${FORM_STYLES.ssoButton} bg-orange-50 hover:bg-orange-100 border-orange-200`}
           >
-            {/* {showOtherMethods ? "← Retour à la connexion classique" : "Autres méthodes de connexion →"} */}
-            Continuer en tant qu'invité
-          </button>
-          {showOtherMethods && (
-            <div className="space-y-3">
-              <button
-                type="button"
-                className={`${FORM_STYLES.ssoButton} opacity-60 cursor-not-allowed`}
-                disabled
-              >
-                <div className="flex items-center justify-center gap-2">
-                  <svg className="w-5 h-5" viewBox="0 0 24 24">
-                    <path fill="currentColor" d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"/>
-                  </svg>
-                  Coming Soon
-                </div>
-              </button>
-              <button
-                type="button"
-                className={`${FORM_STYLES.ssoButton} opacity-60 cursor-not-allowed`}
-                disabled
-              >
-                <div className="flex items-center justify-center gap-2">
-                  <svg className="w-5 h-5" viewBox="0 0 24 24">
-                    <path fill="currentColor" d="M11.4,24H0l11.4-11.4L0,0h11.4l11.4,12L11.4,24z"/>
-                  </svg>
-                  Coming Soon
-                </div>
-              </button>
-              <button
-                type="button"
-                onClick={handleGuestLogin}
-                className={FORM_STYLES.ssoButton}
-              >
-                <div className="flex items-center justify-center gap-2">
-                  <svg className="w-5 h-5" viewBox="0 0 24 24">
-                    <path fill="currentColor" d="M12,2C6.48,2,2,6.48,2,12s4.48,10,10,10s10-4.48,10-10S17.52,2,12,2z M12,20c-4.41,0-8-3.59-8-8s3.59-8,8-8s8,3.59,8,8S16.41,20,12,20z"/>
-                  </svg>
-                  Continuer en tant qu'invité
-                </div>
-              </button>
+            <div className="flex items-center justify-center gap-2">
+              <svg className="w-5 h-5 text-orange-500" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M12,2C6.48,2,2,6.48,2,12s4.48,10,10,10s10-4.48,10-10S17.52,2,12,2z M12,20c-4.41,0-8-3.59-8-8s3.59-8,8-8s8,3.59,8,8S16.41,20,12,20z"/>
+              </svg>
+              Continuer en tant qu'invité
             </div>
-          )}
+          </button>
         </div>
       );
     }
@@ -673,6 +650,34 @@ export default function Login() {
                 required
               />
             </div>
+
+            {(userType === 'student' || userType === 'particulier') && (
+              <>
+                <div className={FORM_STYLES.inputGroup}>
+                  <label className={FORM_STYLES.label}>Prénom</label>
+                  <input
+                    type="text"
+                    name="first_name"
+                    value={formData.first_name}
+                    onChange={handleChange}
+                    className={FORM_STYLES.input}
+                    required
+                  />
+                </div>
+                <div className={FORM_STYLES.inputGroup}>
+                  <label className={FORM_STYLES.label}>Nom</label>
+                  <input
+                    type="text"
+                    name="last_name"
+                    value={formData.last_name}
+                    onChange={handleChange}
+                    className={FORM_STYLES.input}
+                    required
+                  />
+                </div>
+              </>
+            )}
+
             <div className={FORM_STYLES.inputGroup}>
               <label className={FORM_STYLES.label}>Mot de passe</label>
               <input

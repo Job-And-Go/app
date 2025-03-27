@@ -7,6 +7,8 @@ import LocationSearch from '@/components/LocationSearch';
 import FileUpload from '@/components/FileUpload';
 import { useNotificationStore } from '@/store/notificationStore';
 import { useTheme } from '@/components/ThemeProvider';
+import categories from '@/data/categories.json';
+import { Check, X } from 'lucide-react';
 
 interface StudentProfileData {
   id: string;
@@ -30,6 +32,7 @@ interface StudentProfileData {
   contact_preference: string;
   address_street: string;
   address_country: string;
+  skills?: string[];
 }
 
 interface FormField {
@@ -55,6 +58,8 @@ export default function StudentProfile() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const { setNotification } = useNotificationStore();
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const [availableCategories] = useState(Object.keys(categories.categories));
 
   useEffect(() => {
     loadProfile();
@@ -113,6 +118,38 @@ export default function StudentProfile() {
 
     handleChange('documents', field, url);
     setNotification('Fichier téléchargé avec succès', 'success');
+  };
+
+  const handleSkillToggle = (skill: string) => {
+    if (selectedSkills.includes(skill)) {
+      setSelectedSkills(selectedSkills.filter(s => s !== skill));
+    } else if (selectedSkills.length < 4) {
+      setSelectedSkills([...selectedSkills, skill]);
+    }
+  };
+
+  const handleSaveSkills = async () => {
+    if (!profile) return;
+    
+    try {
+      setLoading(true);
+      const { error } = await supabase
+        .from('profiles')
+        .update({ skills: selectedSkills })
+        .eq('id', profile.id);
+
+      if (error) throw error;
+
+      setProfile({ ...profile, skills: selectedSkills });
+      setSuccess('Compétences mises à jour avec succès');
+      setNotification('Compétences mises à jour avec succès', 'success');
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour des compétences:', error);
+      setError('Erreur lors de la mise à jour des compétences');
+      setNotification('Erreur lors de la mise à jour des compétences', 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSave = async (section: string) => {
@@ -190,6 +227,13 @@ export default function StudentProfile() {
       ]
     },
     {
+      id: 'skills',
+      title: 'Compétences',
+      fields: [
+        { name: 'skills', label: 'Sélectionnez vos compétences', type: 'skills' }
+      ]
+    },
+    {
       id: 'documents',
       title: 'Documents',
       fields: [
@@ -253,7 +297,81 @@ export default function StudentProfile() {
                       {field.required && <span className="text-red-500 ml-1">*</span>}
                     </label>
                     
-                    {field.component === 'location' ? (
+                    {field.type === 'skills' ? (
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                          {availableCategories.map((category) => (
+                            <button
+                              key={category}
+                              onClick={() => handleSkillToggle(category)}
+                              className={`p-3 rounded-lg border transition-all duration-200 flex items-center justify-between ${
+                                selectedSkills.includes(category)
+                                  ? 'bg-theme-primary text-white border-theme-primary shadow-md'
+                                  : 'bg-white text-gray-700 border-gray-200 hover:border-theme-primary hover:shadow-sm'
+                              }`}
+                            >
+                              <span>{category}</span>
+                              {selectedSkills.includes(category) && (
+                                <Check className="w-4 h-4 ml-2" />
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="flex justify-between items-center bg-gray-50 p-4 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm text-gray-600">
+                              {selectedSkills.length}/4 compétences sélectionnées
+                            </p>
+                            {selectedSkills.length === 4 && (
+                              <span className="text-sm text-red-500">
+                                Maximum atteint
+                              </span>
+                            )}
+                          </div>
+                          <button
+                            onClick={handleSaveSkills}
+                            disabled={loading || selectedSkills.length === 0}
+                            className="px-4 py-2 bg-theme-primary text-white rounded-lg hover:bg-theme-hover disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                          >
+                            {loading ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
+                                Enregistrement...
+                              </>
+                            ) : (
+                              <>
+                                <Check className="w-4 h-4" />
+                                Enregistrer
+                              </>
+                            )}
+                          </button>
+                        </div>
+                        {profile?.skills && profile.skills.length > 0 && (
+                          <div className="mt-4">
+                            <h3 className="text-sm font-medium text-gray-700 mb-2">Compétences actuelles</h3>
+                            <div className="flex flex-wrap gap-2">
+                              {profile.skills.map((skill, index) => (
+                                <span
+                                  key={index}
+                                  className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm flex items-center gap-1"
+                                >
+                                  {skill}
+                                  <button
+                                    onClick={() => {
+                                      setSelectedSkills(profile.skills?.filter((_, i) => i !== index) || []);
+                                      handleSaveSkills();
+                                    }}
+                                    className="text-gray-400 hover:text-red-500"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : field.component === 'location' ? (
                       <LocationSearch onSelect={handleLocationSelect} />
                     ) : field.component === 'file' ? (
                       <div>
@@ -316,14 +434,16 @@ export default function StudentProfile() {
                   </div>
                 ))}
 
-                <div className="flex justify-end mt-6">
-                  <button
-                    onClick={() => handleSave(section.id)}
-                    className="bg-theme-primary text-white px-6 py-2 rounded-lg hover:bg-theme-hover transition-colors"
-                  >
-                    Enregistrer les modifications
-                  </button>
-                </div>
+                {section.id !== 'skills' && (
+                  <div className="flex justify-end mt-6">
+                    <button
+                      onClick={() => handleSave(section.id)}
+                      className="bg-theme-primary text-white px-6 py-2 rounded-lg hover:bg-theme-hover transition-colors"
+                    >
+                      Enregistrer les modifications
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ))}

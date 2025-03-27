@@ -40,7 +40,7 @@ export default function MessageConversation({ currentUserId, otherUserId, applic
             <div
               className={`max-w-[70%] p-3 rounded-lg ${
                 message.sender_id === currentUserId
-                  ? 'bg-[#3bee5e] text-white'
+                  ? 'bg-theme-primary text-white'
                   : 'bg-gray-100 text-gray-900'
               }`}
             >
@@ -60,11 +60,11 @@ export default function MessageConversation({ currentUserId, otherUserId, applic
           onChange={(e) => setNewMessage(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && handleSend()}
           placeholder="Écrivez votre message..."
-          className="flex-1 border rounded-lg px-4 py-2 text-black"
+          className="flex-1 border rounded-lg px-4 py-2 text-black focus:ring-2 focus:ring-theme-primary focus:border-transparent"
         />
         <button
           onClick={handleSend}
-          className="bg-[#3bee5e] text-white px-4 py-2 rounded-lg hover:bg-[#32d951]"
+          className="bg-theme-primary text-white px-4 py-2 rounded-lg hover:bg-theme-hover transition-colors"
         >
           Envoyer
         </button>

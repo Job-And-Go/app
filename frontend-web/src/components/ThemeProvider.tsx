@@ -20,7 +20,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const getProfile = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      console.log("Session:", session);
       if (session?.user) {
         const { data: profile } = await supabase
           .from('profiles')
@@ -28,9 +27,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
           .eq('id', session.user.id)
           .single();
         
-        console.log("Profile from DB:", profile);
         if (profile?.type) {
-          console.log("Setting userType to:", profile.type);
           setUserType(profile.type);
         }
       }
@@ -39,15 +36,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     getProfile();
   }, []);
 
-  console.log("Current userType:", userType);
-
-  const themeClass = userType === 'student' 
+  const themeClass = !userType || userType === 'student'
     ? 'student-theme'
     : (userType === 'particulier' || userType === 'professionnel')
       ? 'professional-theme'
       : '';
-
-  console.log("Resulting themeClass:", themeClass);
 
   return (
     <ThemeContext.Provider value={{ userType, setUserType }}>

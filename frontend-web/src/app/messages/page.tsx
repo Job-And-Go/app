@@ -1,11 +1,15 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import MessageConversation from '@/components/MessageConversation';
-import Navbar from '@/components/Navbar';
+import Layout from '@/components/Layout';
+import { useTheme } from '@/components/ThemeProvider';
+import Image from 'next/image';
+import { formatDistanceToNow } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 interface Conversation {
   id: string;
@@ -27,6 +31,7 @@ function MessagesContent() {
   const searchParams = useSearchParams();
   const applicationId = searchParams?.get('application') ?? null;
   const otherUserId = searchParams?.get('user') ?? null;
+  const { userType } = useTheme();
   
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
@@ -168,68 +173,91 @@ function MessagesContent() {
   };
 
   return (
-    <>
-      <Navbar 
-        user={currentUser}
-        userProfile={userProfile}
-        handleSignOut={handleSignOut}
-      />
-      <div className="flex h-[calc(100vh-64px)] bg-white">
+    <Layout>
+      <div className="flex h-[calc(100vh-64px)]">
         {/* Liste des conversations */}
-        <div className="w-1/3 border-r overflow-y-auto">
-          {conversations.map((conversation) => (
-            <div
-              key={conversation.id}
-              onClick={() => setSelectedConversation(conversation)}
-              className={`p-4 border-b hover:bg-[#f0fff2] cursor-pointer ${
-                selectedConversation?.id === conversation.id ? 'bg-[#e6ffe9]' : ''
-              }`}
-            >
-              <div className="flex items-center gap-4">
-                <img
-                  src={conversation.other_user.avatar_url || '/default-avatar.png'}
-                  alt="Avatar"
-                  className="w-12 h-12 rounded-full"
-                />
-                <div className="flex-1">
-                  <h3 className="font-semibold text-black">{conversation.other_user.full_name}</h3>
-                  <p className="text-sm text-black truncate">
-                    {conversation.last_message.content}
-                  </p>
+        <div className="w-80 bg-white border-r border-gray-100 overflow-y-auto">
+          <div className="p-4 border-b border-gray-100">
+            <h2 className="text-lg font-semibold text-gray-900">Messages</h2>
+          </div>
+          <div className="divide-y divide-gray-100">
+            {conversations.map((conversation) => (
+              <div
+                key={conversation.id}
+                onClick={() => setSelectedConversation(conversation)}
+                className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors ${
+                  selectedConversation?.id === conversation.id 
+                    ? 'bg-theme-light border-l-4 border-theme-primary' 
+                    : ''
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                    <Image
+                      src={conversation.other_user.avatar_url || '/images/default-avatar.jpg'}
+                      alt={conversation.other_user.full_name}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-medium text-gray-900 truncate">
+                        {conversation.other_user.full_name}
+                      </h3>
+                      <span className="text-xs text-gray-500">
+                        {formatDistanceToNow(new Date(conversation.last_message.created_at), {
+                          addSuffix: true,
+                          locale: fr
+                        })}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm text-gray-600 truncate">
+                        {conversation.last_message.content || "Nouvelle conversation"}
+                      </p>
+                      {conversation.unread_count > 0 && (
+                        <span className="flex-shrink-0 inline-flex items-center justify-center h-5 w-5 text-xs font-medium text-white bg-theme-primary rounded-full">
+                          {conversation.unread_count}
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                {conversation.unread_count > 0 && (
-                  <span className="bg-[#3bee5e] text-white px-2 py-1 rounded-full text-xs">
-                    {conversation.unread_count}
-                  </span>
-                )}
               </div>
-            </div>
-          ))}
+            ))}
+            {conversations.length === 0 && (
+              <div className="p-4 text-center text-gray-500">
+                Aucune conversation
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Zone de conversation active */}
-        <div className="w-2/3 bg-white">
+        {/* Zone de conversation */}
+        <div className="flex-1 bg-gray-50">
           {selectedConversation ? (
             <MessageConversation
-              currentUserId={currentUser?.id}
+              currentUserId={currentUser.id}
               otherUserId={selectedConversation.other_user.id}
-              applicationId={selectedConversation.application_id}
+              applicationId={applicationId || undefined}
             />
           ) : (
-            <div className="flex items-center justify-center h-full text-black">
-              Sélectionnez une conversation
+            <div className="h-full flex items-center justify-center">
+              <div className="text-center text-gray-500">
+                <p className="mb-2">Sélectionnez une conversation</p>
+                <p className="text-sm">ou commencez une nouvelle discussion via une offre d'emploi</p>
+              </div>
             </div>
           )}
         </div>
       </div>
-    </>
+    </Layout>
   );
 }
 
 export default function MessagesPage() {
   return (
-    <Suspense fallback={<div>Chargement...</div>}>
-      <MessagesContent />
-    </Suspense>
+    <MessagesContent />
   );
 }

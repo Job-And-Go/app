@@ -23,13 +23,20 @@ type UserType = typeof VALID_USER_TYPES[number];
 router.post('/register', async (req, res) => {
   try {
     console.log('Données reçues:', req.body);
-    const { email, password, userType, full_name } = req.body;
+    const { email, password, userType, full_name, first_name, last_name } = req.body;
 
     // Valider les champs requis
-    if (!email || !password || !userType || !full_name) {
-      console.log('Validation échouée:', { email, userType, full_name });
+    if (!email || !password || !userType) {
+      console.log('Validation échouée:', { email, userType });
       return res.status(400).json({ 
-        error: 'Email, mot de passe, type d\'utilisateur et nom complet sont requis' 
+        error: 'Email, mot de passe et type d\'utilisateur sont requis' 
+      });
+    }
+
+    // Valider les champs spécifiques selon le type d'utilisateur
+    if ((userType === 'student' || userType === 'particulier') && (!first_name || !last_name)) {
+      return res.status(400).json({ 
+        error: 'Le prénom et le nom sont requis pour ce type de compte' 
       });
     }
 
@@ -44,7 +51,12 @@ router.post('/register', async (req, res) => {
     const { data: userData, error: userError } = await supabase.auth.admin.createUser({
       email,
       password,
-      user_metadata: { type: userType, full_name },
+      user_metadata: { 
+        type: userType, 
+        full_name: userType === 'student' || userType === 'particulier' 
+          ? `${first_name} ${last_name}`
+          : full_name 
+      },
     });
 
     if (userError || !userData?.user) {
@@ -60,7 +72,11 @@ router.post('/register', async (req, res) => {
     const profileData = {
       id: userData.user.id,
       type: userType,
-      full_name: full_name,
+      full_name: userType === 'student' || userType === 'particulier' 
+        ? `${first_name} ${last_name}`
+        : full_name,
+      first_name: userType === 'student' || userType === 'particulier' ? first_name : null,
+      last_name: userType === 'student' || userType === 'particulier' ? last_name : null,
       created_at: new Date().toISOString(),
     };
 

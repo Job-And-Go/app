@@ -61,7 +61,7 @@ export default function ApplyToJob({ params }: { params: { id: string } }) {
       <h1 className="text-2xl font-bold mb-6">Postuler à l'offre</h1>
       <button
         onClick={handleApply}
-        className="bg-[#3bee5e] text-white py-2 px-4 rounded hover:bg-[#32d951] transition-colors"
+        className="bg-theme-primary text-white py-2 px-4 rounded hover:bg-theme-hover transition-colors"
       >
         Confirmer la candidature
       </button>
