@@ -104,23 +104,58 @@ export function useMessages(userId: string, otherId?: string) {
   };
 
   const checkMessagePermission = async (receiverId: string, applicationId?: string) => {
+    console.log('Checking message permission:', { receiverId, applicationId });
+
+    // Si on a un applicationId, on vérifie d'abord la candidature
     if (applicationId) {
-      const { data: application } = await supabase
+      const { data: application, error: appError } = await supabase
         .from('applications')
         .select('status')
         .eq('id', applicationId)
         .single();
 
-      return application?.status === 'accepted';
+      console.log('Application check:', { application, error: appError });
+
+      if (appError) {
+        console.error('Error checking application:', appError);
+        return false;
+      }
+
+      if (application?.status === 'accepted') {
+        return true;
+      }
     }
 
-    const { data: receiverProfile } = await supabase
+    // Vérifier le profil du destinataire
+    const { data: receiverProfile, error: profileError } = await supabase
       .from('profiles')
-      .select('is_private, accept_dm')
+      .select('type, is_private, accept_dm')
       .eq('id', receiverId)
       .single();
 
-    return !receiverProfile?.is_private || receiverProfile?.accept_dm;
+    console.log('Profile check:', { receiverProfile, error: profileError });
+
+    if (profileError) {
+      console.error('Error checking profile:', profileError);
+      return false;
+    }
+
+    if (!receiverProfile) {
+      console.log('No receiver profile found');
+      return false;
+    }
+
+    // Si c'est un étudiant, il peut toujours recevoir des messages
+    if (receiverProfile.type === 'student') {
+      console.log('Receiver is a student, allowing message');
+      return true;
+    }
+
+    // Pour les autres types d'utilisateurs, on vérifie les paramètres de confidentialité
+    const canMessage = !receiverProfile.is_private || receiverProfile.accept_dm;
+    console.log('Final permission check:', { canMessage, profile: receiverProfile });
+    
+    return canMessage;
   };
 
   const subscribeToMessages = () => {

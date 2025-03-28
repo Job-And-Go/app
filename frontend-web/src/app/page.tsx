@@ -72,6 +72,69 @@ export default function Home() {
             }
           }
 
+          // Charger les étudiants en vedette (triés par note)
+          const { data: featured } = await supabase
+            .from('profiles')
+            .select(`
+              *,
+              student_ratings:student_ratings!student_ratings_student_id_fkey(
+                rating
+              )
+            `)
+            .eq('type', 'student')
+            .not('student_ratings', 'is', null)  // Seulement les étudiants avec des avis
+            .order('created_at', { ascending: false })
+            .limit(3);
+
+          if (featured) {
+            const studentsWithRating = featured.map(student => {
+              const ratings = student.student_ratings || [];
+              const avgRating = ratings.length > 0
+                ? ratings.reduce((acc: number, curr: any) => acc + Number(curr.rating), 0) / ratings.length
+                : 0;
+              
+              return {
+                ...student,
+                rating: avgRating,
+                nb_ratings: ratings.length
+              };
+            })
+            // Filtrer les étudiants sans avis et trier par note décroissante
+            .filter(student => student.nb_ratings > 0)
+            .sort((a, b) => b.rating - a.rating);
+
+            setFeaturedStudents(studentsWithRating);
+          }
+
+          // Charger les nouveaux étudiants
+          const { data: latest } = await supabase
+            .from('profiles')
+            .select(`
+              *,
+              student_ratings:student_ratings!student_ratings_student_id_fkey(
+                rating
+              )
+            `)
+            .eq('type', 'student')
+            .order('created_at', { ascending: false })
+            .limit(3);
+
+          if (latest) {
+            const studentsWithRating = latest.map(student => {
+              const ratings = student.student_ratings || [];
+              const avgRating = ratings.length > 0
+                ? ratings.reduce((acc: number, curr: any) => acc + Number(curr.rating), 0) / ratings.length
+                : 0;
+              
+              return {
+                ...student,
+                rating: avgRating,
+                nb_ratings: ratings.length
+              };
+            });
+            setLatestStudents(studentsWithRating);
+          }
+
           // Charger les offres récentes
           const { data: recent } = await supabase
             .from('jobs')
@@ -82,7 +145,7 @@ export default function Home() {
               )
             `)
             .order('created_at', { ascending: false })
-            .limit(6);
+            .limit(3);
           
           if (recent) {
             const filteredRecent = recent.filter(job => job.employer?.type);
@@ -100,7 +163,7 @@ export default function Home() {
             `)
             .eq('employer.type', 'particulier')
             .order('created_at', { ascending: false })
-            .limit(6);
+            .limit(3);
           
           if (particulier) setParticularJobs(particulier);
 
@@ -115,7 +178,7 @@ export default function Home() {
             `)
             .eq('employer.type', 'professionnel')
             .order('created_at', { ascending: false })
-            .limit(6);
+            .limit(3);
           
           if (professionnel) setProfessionalJobs(professionnel);
 
@@ -131,7 +194,7 @@ export default function Home() {
               `)
               .in('category', userSkills)
               .order('created_at', { ascending: false })
-              .limit(6);
+              .limit(3);
         
             if (recommended) {
               const filteredRecommended = recommended.filter(job => job.employer?.type);
@@ -149,7 +212,7 @@ export default function Home() {
               )
             `)
             .order('created_at', { ascending: false })
-            .limit(6);
+            .limit(3);
           
           if (recent) {
             const filteredRecent = recent.filter(job => job.employer?.type);
@@ -369,7 +432,7 @@ export default function Home() {
                           Trouvez l'étudiant idéal pour votre projet en quelques clics
                         </p>
                         <button 
-                          onClick={() => router.push('/jobs/new')}
+                          onClick={() => router.push('/jobs/create')}
                           className="bg-theme-primary text-white px-12 py-4 rounded-lg text-lg font-medium hover:bg-theme-hover transition-all duration-300 w-fit group-hover:translate-y-[-2px] group-hover:shadow-lg"
                         >
                           Créer une offre
